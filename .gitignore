@@ -75,7 +75,8 @@ cookbook/static/vue
 vue/webpack-stats.json
 /docker-compose.override.yml
 vue/node_modules
-/recipes/plugins
+/recipes/plugins/*
+!/recipes/plugins/cookbook_ext/
 vetur.config.js
 cookbook/static/vue
 vue/webpack-stats.json
@@ -91,7 +92,11 @@ cookbook/static/vue3
 vue3/node_modules
 cookbook/tests/other/docs/reports/tests/tests.html
 cookbook/tests/other/docs/reports/tests/pytest.xml
-vue3/src/plugins
+vue3/src/plugins/*
+!vue3/src/plugins/cookbook_ext/
 docs/reference/
 .idea/vcs.xml
 .idea/db-forest-config.xml
+
+# Rezept-App: repo-lokale Toolchains (uv, Python, Node), siehe projekt/DEV.md
+.tools/
