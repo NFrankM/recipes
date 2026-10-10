@@ -148,6 +148,22 @@ Phasen 1–5 sind fertig, getestet und committet (nur lokal, Push braucht deine 
 - allrecipes.com blockt Server-Abrufe (403) – kein Fehler bei uns, Tandoor zeigt die Meldung an
 - Screenshots: `projekt/screenshots/phase6/`
 
+## Phase 7 – Eigenes Image & Deployment ✅ (ohne echten Docker-Build)
+
+**Plan:** Multi-Stage-Build: Frontend-Stage (Node 22/yarn, wie Tandoors CI) + Tandoors eigenes Dockerfile. Damit Upstream-Änderungen am Dockerfile automatisch mitkommen, wird das Dockerfile beim Bauen zusammengesetzt statt kopiert. Compose auf eigenes Image umstellen, UPDATE.md schreiben.
+
+**Erledigt:**
+- `deploy/image/Dockerfile.frontend` (Stage 1) + `deploy/build-image.sh` (setzt Stage 1 + unverändertes `Dockerfile` zusammen, fügt nach `COPY . ./` die Übernahme des Frontends ein, Tag `rezept-app:<datum>-<commit>` + `rezept-app:aktuell`, optional Push in eine Registry, `--nur-dockerfile` zur Kontrolle, Abbruch mit Exit 2, falls upstream das Dockerfile strukturell ändert)
+- `deploy/docker-compose.yml`/`.env.example`: Image kommt jetzt immer aus `TANDOOR_IMAGE` (Standard `rezept-app:aktuell`), Original-Tandoor bleibt als Test-Option dokumentiert; SETUP_LXC.md ergänzt
+- `projekt/UPDATE.md`: Upstream mergen, Konflikt-Stellen, Prüfliste nach dem Merge, lokal testen, Backup + Restore-Test, Image bauen, ausrollen, Rückweg
+
+**Getestet mit:**
+- `bash -n deploy/build-image.sh` ok; `--nur-dockerfile` erzeugt ein gültig aufgebautes Multi-Stage-Dockerfile (Stage `frontend`, `COPY --from=frontend …` direkt nach `COPY . ./`)
+- Docker-Stub: richtige Build-Argumente/Tags, Dockerfile kommt über stdin, Fehler → Exit 3
+- Stage 1 nachgestellt: frische Kopie von `vue3/` ohne `node_modules` → `yarn install --frozen-lockfile` + `yarn build` ok, Ausgabe landet wie erwartet in `cookbook/static/vue3` inkl. unserer Seiten
+- Compose-Datei erneut gegen das Compose-Spec-Schema validiert
+- **Nicht getestet:** echter `docker build` und Start des Images (kein Docker auf dem Mac) → auf der LXC prüfen
+
 ## Probleme
 
 - `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.

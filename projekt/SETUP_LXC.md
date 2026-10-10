@@ -113,6 +113,15 @@ In `.env` setzen:
 - `ALLOWED_HOSTS` → `rezepte,rezepte.<tailnet>.ts.net,<tailscale-ip>`
 - `CSRF_TRUSTED_ORIGINS` → `http://rezepte,http://rezepte.<tailnet>.ts.net,https://rezepte.<tailnet>.ts.net`
 
+Image wählen (`TANDOOR_IMAGE` in `.env`):
+- **Eigenes Image** (Standard): einmal bauen, dauert ~5–10 Minuten:
+  ```bash
+  lxc# /opt/rezept-app/deploy/build-image.sh      # gibt den Tag aus, z. B. rezept-app:20261011-27b8a4d
+  ```
+  Den ausgegebenen Tag in `.env` eintragen (oder `rezept-app:aktuell` stehen lassen).
+- **Nur zum Ausprobieren** von Original-Tandoor: `TANDOOR_IMAGE=vabene1111/recipes:2.6.15`.
+  Achtung: Wer später auf unser Image wechselt, wechselt auf einen neueren Tandoor-Stand (develop) – das geht, aber nicht zurück (Migrationen).
+
 ```bash
 lxc# docker compose config >/dev/null && echo "Konfiguration ok"
 lxc# docker compose up -d

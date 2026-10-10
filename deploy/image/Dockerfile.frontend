@@ -1,0 +1,13 @@
+# ---------------------------------------------------------------------------
+# Stage 1 – Frontend (vue3 inkl. unseres Plugins) bauen.
+# Wird von deploy/build-image.sh VOR Tandoors eigenes Dockerfile gesetzt.
+# Entspricht dem, was Tandoors CI vor dem Docker-Build macht (Node 22, yarn).
+# ---------------------------------------------------------------------------
+FROM node:22-alpine AS frontend
+WORKDIR /src/vue3
+COPY vue3/package.json vue3/yarn.lock ./
+RUN yarn install --frozen-lockfile --network-timeout 600000
+COPY vue3/ ./
+RUN yarn build
+# Ergebnis: /src/cookbook/static/vue3 (outDir in vite.config.ts)
+

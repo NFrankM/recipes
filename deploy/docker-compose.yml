@@ -1,12 +1,14 @@
 # Rezept-App – Betrieb in der Proxmox-LXC
 #
-# Phase 1: offizielles Tandoor-Image (zum Testen).
-# Später (Phase 7) wird "image:" auf unser eigenes Image umgestellt.
+# Image: TANDOOR_IMAGE in .env
+#   - eigenes Image aus diesem Fork (Standard): deploy/build-image.sh → rezept-app:<datum>-<commit>
+#   - nur zum Testen: offizielles Tandoor-Image vabene1111/recipes:2.6.15
+#   (siehe projekt/UPDATE.md)
 #
 # Start:   cd /opt/rezept-app/deploy && docker compose up -d
 # Logs:    docker compose logs -f web_recipes
-# Update:  ERST Backup (deploy/backup.sh), dann TANDOOR_IMAGE in .env ändern und
-#          docker compose pull && docker compose up -d
+# Update:  ERST Backup (deploy/backup.sh), dann neues Image bauen/eintragen und
+#          docker compose up -d   (Ablauf: projekt/UPDATE.md)
 #          Tandoor-Migrationen lassen sich NICHT zurückrollen!
 
 name: rezept-app
@@ -30,7 +32,7 @@ services:
       start_period: 20s
 
   web_recipes:
-    image: ${TANDOOR_IMAGE:-vabene1111/recipes:2.6.15}
+    image: ${TANDOOR_IMAGE:?TANDOOR_IMAGE fehlt in .env (z. B. rezept-app:aktuell)}
     restart: unless-stopped
     env_file:
       - ./.env
