@@ -48,3 +48,19 @@ Abweichungen vom Entwurf in CLAUDE.md und warum:
 6. **`is_default`**: höchstens eine Standard-Variante pro Rezept (DB-Constraint). Die Rezeptansicht öffnet dann direkt „Unsere Version".
 7. **Rechte:** Varianten sind Haushaltssache – alle Benutzer (Gruppe `user`) des Spaces, die das Rezept sehen dürfen, dürfen die Variante bearbeiten (nicht nur der Ersteller). Gäste nur lesen.
 8. **Einkaufsliste:** Einträge aus geänderten/ergänzten Zutaten werden **ohne** Verweis auf die Original-Zutat (`ingredient=None`) angelegt, unveränderte mit Verweis. Grund: Tandoor skaliert beim späteren Ändern der Portionen anhand `ingredient.amount` – das wäre bei geänderten Mengen falsch. Nachteil: Ändert man auf der Einkaufsliste nachträglich die Portionen, werden geänderte/ergänzte Einträge nicht mitskaliert (wie bei Tandoors manuellen Einträgen).
+
+## E6 – Neue Rezeptansicht als Standard, ohne Tandoors Router zu ändern (2026-10-10)
+
+- **Frage:** Die neue Ansicht soll unter `/recipe/<id>` erscheinen und alle bestehenden Links (Karten, Suche, Essensplan) sollen dorthin führen. Tandoors Routing steht in `apps/tandoor/main.ts` (Kern).
+- **Optionen:** (a) `main.ts` ändern. (b) eigene URL (`/r/<id>`) – Tandoors Links zeigen dann weiter auf die alte Ansicht. (c) Plugin-Route mit **demselben Namen** `RecipeViewPage`: vue-router entfernt beim Hinzufügen einer Route mit vorhandenem Namen die alte (`addRoute` → `removeRoute(name)`), Plugin-Routen werden nach Tandoors Routen hinzugefügt.
+- **Wahl:** (c). Tandoors Ansicht bleibt als `RecipeViewPageTandoor` unter `/recipe/<id>/klassisch` erreichbar (Menü „Klassische Ansicht"). Share-Links (`?share=`) und nicht angemeldete Besucher werden automatisch dorthin umgeleitet, weil nur Tandoors Ansicht Share-Links kann.
+- **Risiko:** Verhalten hängt an vue-router (getestet mit 4.6.4). Falls ein Upstream-Update das ändert, zeigt `/recipe/<id>` wieder Tandoors Ansicht – nichts geht kaputt. Prüfen nach Updates: Rezept öffnen → erscheint das große Foto mit Sheet?
+
+## E7 – Kleine Design-Entscheidungen in der Rezeptansicht (2026-10-10)
+
+- **App-Bar ausgeblendet** auf der Rezeptseite (Klasse `rz-immersive` am `<html>`), damit das Foto bis oben reicht wie im Mockup; Zurück- und Menü-Button liegen als runde weiße Buttons auf dem Foto. Untere Leiste bleibt.
+- **Zutatenliste flach** über alle Schritte (wie Mela), Überschriften-Zutaten als kleine Zwischenzeilen. Die Zuordnung zu Schritten bleibt im Datenmodell.
+- **„Anpassen"-Modus** statt Dauer-Bearbeitung: Erst nach Tippen auf „Anpassen" sind Zutaten/Schritte antippbar – verhindert versehentliche Änderungen beim Kochen.
+- **Mengen im Editor** gelten für die aktuell eingestellten Portionen und werden intern auf die Grundportionen umgerechnet.
+- **Badges:** „geändert" gefüllt, „ergänzt" als Outline, entfernte Zutaten nur im Anpassen-Modus (durchgestrichen) sichtbar; geänderte zeigen klein „statt 200 g Mehl".
+- **Einkaufsliste im Original-Modus** nutzt Tandoors vorhandenen Endpunkt, in „Unsere Version" unseren.

@@ -15,7 +15,19 @@ export const plugin: TandoorPlugin = {
     defaultLocale: import('@/plugins/cookbook_ext/locales/en.json'),
     localeFiles: import.meta.glob('@/plugins/cookbook_ext/locales/*.json'),
 
-    routes: [],
+    routes: [
+        // Ersetzt Tandoors Rezeptansicht: gleicher Routenname → vue-router entfernt die Tandoor-Route beim Hinzufügen,
+        // alle bestehenden Links ({name: 'RecipeViewPage'}) führen damit automatisch zur neuen Ansicht (ENTSCHEIDUNGEN.md E6).
+        {
+            path: '/recipe/:id', name: 'RecipeViewPage', props: true, meta: {title: 'Recipe'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzRecipePage.vue'),
+        },
+        // Tandoors ursprüngliche Ansicht bleibt erreichbar (Share-Links, Nährwerte, Eigenschaften …)
+        {
+            path: '/recipe/:id/klassisch', name: 'RecipeViewPageTandoor', props: true, meta: {title: 'Recipe'},
+            component: () => import('@/pages/RecipeViewPage.vue'),
+        },
+    ],
     settingRoutes: [],
 
     navigationDrawer: [],

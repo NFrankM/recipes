@@ -2,7 +2,7 @@
 
 ## Stand jetzt
 
-Umgebungsprüfung abgeschlossen, Phase 1 startet.
+Phasen 1–5 sind fertig, getestet und committet (nur lokal, Push braucht deine Anmeldung). Deployment-Dateien und Backup-Skripte liegen in `deploy/`, konnten mangels Docker aber nur statisch und mit einem Docker-Stub geprüft werden. Unsere Erweiterungen laufen komplett über Tandoors Plugin-System (`recipes/plugins/cookbook_ext`, `vue3/src/plugins/cookbook_ext`) – am Tandoor-Kern ist nur `.gitignore` geändert. Die neue Rezeptansicht mit „Unsere Version", Editor, Einkaufsliste und Bewertungen mit Fotos funktioniert im Browser (390 px). Phase 6/7 siehe unten.
 
 ## Umgebung (2026-10-10)
 
@@ -105,6 +105,31 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 - `flake8 --max-line-length 160` → sauber; `manage.py spectacular` → keine Warnungen zu unseren Endpunkten
 - Tandoor-Suite: zunächst 5 neue Fehler in `test_schemas.py` (Tandoor verlangt explizite Pagination-Angabe) → mit `pagination_disabled = True` behoben; `test_schemas.py` + unsere Tests: 322 passed
 - Nur SQLite getestet (kein PostgreSQL lokal) – die Models nutzen nichts PostgreSQL-Spezifisches, die Migration ist Standard-Django
+
+## Phase 5 – Rezeptansicht neu ✅
+
+**Plan:** Eigene Vue-Seite im Frontend-Plugin, ersetzt Tandoors Rezeptansicht über den Routennamen (E6); Komponenten für Sterne, Segment, Stepper, Zutatenliste mit Badges, Editor-Sheets, Bewertungen; angebunden an die API aus Phase 4.
+
+**Erledigt (`vue3/src/plugins/cookbook_ext/`):**
+- `pages/RzRecipePage.vue` – großes Foto, Sheet (24 px) darüber, Titel, Zeit, Sterne + Anzahl Bewertungen, Tags, Beschreibung, Segment „Original / Unsere Version", Portions-Stepper mit Live-Skalierung, Zutaten mit Badges, „Auf die Einkaufsliste", nummerierte Schritte mit „Unsere Notiz" und ergänzten Schritten, Bewertungen, Menü (Original bearbeiten, Klassische Ansicht, Version löschen)
+- `components/RzIngredientList.vue` (Badges „geändert"/„ergänzt", „statt …"), `RzIngredientSheet.vue` (Menge ändern, ersetzen, entfernen, wiederherstellen, ergänzen – Zutaten/Einheiten per Autovervollständigung oder neuem Namen), `RzStepSheet.vue` (Notiz, Schritt danach einfügen, eigenen Schritt bearbeiten/löschen), `RzReviews.vue` (Liste + „Bewertung oder Foto hinzufügen" mit Sternen, Kommentar, Datum, Portionen, mehreren Fotos), `RzStars`, `RzSegment`, `RzStepper`, `RzIcon` (Strich-SVGs)
+- `services/api.ts` (eigener fetch-Client mit CSRF), `services/types.ts`, `services/format.ts` (Brüche ½ ¼ ¾, deutsche Zahlen, Plural)
+- Touch-Ziele ≥ 44 px (Stepper, Icon-Buttons, Sterne-Eingabe, Zeilen 48 px, Einkaufs-Button 52 px)
+- Backend-Ergänzung: `original.note` in der effektiven Fassung (für den Editor)
+
+**Getestet mit:**
+- `yarn build` → ok; `vue-tsc --noEmit` → **keine** Fehler in unseren Dateien (Tandoor selbst hat ~650 TS-Fehler, unverändert)
+- Playwright-Durchläufe bei 390 px (echter Browser gegen `runserver`, Demo-Daten), alle ohne Konsolenfehler:
+  - Portionen + → Mengen skalieren (1 Stück → 1½ Stück)
+  - Anpassen → Olivenöl antippen → Menge 4 → Zeile zeigt „4 EL Olivenöl · statt 3 EL · geändert"
+  - Schritt antippen → Notiz speichern → „Unsere Notiz" erscheint
+  - Umschalten auf Original → keine Badges, keine Notizen
+  - Rezept ohne Version → „Unsere Version anlegen" → Anpassen-Modus → Zutat „Pinienkerne" ergänzt (Badge „ergänzt")
+  - „Auf die Einkaufsliste" → Meldung, Pinienkerne stehen auf `/shopping`
+  - Bewertung mit 4 Sternen, Kommentar und Foto → erscheint mit Foto in der Liste
+  - `/recipe/3/klassisch` → Tandoors Ansicht
+- Screenshots: `projekt/screenshots/phase5/`
+- `pytest recipes/plugins/cookbook_ext` → 53 passed
 
 ## Probleme
 

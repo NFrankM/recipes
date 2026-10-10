@@ -210,6 +210,7 @@ def serialize_effective(eff):
                 'food': _named(i.original_food),
                 'unit': _named(i.original_unit),
                 'amount': _num(i.original_amount),
+                'note': i.original_note,
             },
         }
 

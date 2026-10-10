@@ -37,6 +37,7 @@ class EffectiveIngredient:
     original_food: Optional[Food] = None
     original_unit: Optional[Unit] = None
     original_amount: Optional[Decimal] = None  # skaliert
+    original_note: str = ''
 
 
 @dataclass
@@ -158,6 +159,7 @@ def effective_recipe(recipe: Recipe, variant: Optional[RecipeVariant] = None, se
                     no_amount=ing.no_amount and change.amount is None,
                     order=ing.order, ingredient=ing, change=change,
                     original_food=ing.food, original_unit=ing.unit, original_amount=_scale(ing.amount, factor),
+                    original_note=ing.note or '',
                 ))
         for c in sorted(adds_by_step.get(s.pk, []), key=lambda x: (x.order, x.pk)):
             es.ingredients.append(EffectiveIngredient(

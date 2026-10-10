@@ -44,8 +44,8 @@
 
 /* ---------- Schrift ---------- */
 html, body, .v-application,
-.v-application [class*="text-h"], .v-application [class*="text-subtitle"], .v-application [class*="text-body"],
-.v-application [class*="text-caption"], .v-application [class*="text-overline"], .v-application [class*="text-button"] {
+:is(.v-application, .v-overlay-container) [class*="text-h"], :is(.v-application, .v-overlay-container) [class*="text-subtitle"], :is(.v-application, .v-overlay-container) [class*="text-body"],
+:is(.v-application, .v-overlay-container) [class*="text-caption"], :is(.v-application, .v-overlay-container) [class*="text-overline"], :is(.v-application, .v-overlay-container) [class*="text-button"] {
     font-family: var(--rz-font) !important;
 }
 
@@ -75,37 +75,37 @@ html, body, .v-application,
 .rounded-rz-sheet { border-radius: var(--rz-radius-sheet) !important; }
 
 /* ---------- Buttons ---------- */
-.v-application .v-btn {
+:is(.v-application, .v-overlay-container) .v-btn {
     letter-spacing: 0;
     text-transform: none;
     font-weight: 600;
 }
-.v-application .v-btn:not(.v-btn--icon) {
+:is(.v-application, .v-overlay-container) .v-btn:not(.v-btn--icon) {
     border-radius: var(--rz-radius-field);
 }
 /* Touch-Ziele: Standard-Buttons mindestens 44 px hoch */
-.v-application .v-btn--size-default:not(.v-btn--icon) {
+:is(.v-application, .v-overlay-container) .v-btn--size-default:not(.v-btn--icon) {
     --v-btn-height: var(--rz-touch);
 }
-.v-application .v-btn--variant-outlined {
+:is(.v-application, .v-overlay-container) .v-btn--variant-outlined {
     border-color: var(--rz-border-strong);
 }
 
 /* ---------- Karten, Chips, Listen ---------- */
-.v-application .v-card--variant-elevated,
-.v-application .v-card--variant-flat {
+:is(.v-application, .v-overlay-container) .v-card--variant-elevated,
+:is(.v-application, .v-overlay-container) .v-card--variant-flat {
     box-shadow: none;
 }
 /* Outline-Varianten mit hellem Rand statt currentColor */
-.v-application .v-card--variant-outlined,
-.v-application .v-chip--variant-outlined {
+:is(.v-application, .v-overlay-container) .v-card--variant-outlined,
+:is(.v-application, .v-overlay-container) .v-chip--variant-outlined {
     border-color: var(--rz-border-strong);
 }
-.v-application .v-chip {
+:is(.v-application, .v-overlay-container) .v-chip {
     font-weight: 500;
     letter-spacing: 0;
 }
-.v-application .v-divider {
+:is(.v-application, .v-overlay-container) .v-divider {
     border-color: var(--rz-border);
     opacity: 1;
 }
@@ -114,21 +114,21 @@ html, body, .v-application,
  * Die Farbe der oberen Leiste ist in Tandoor eine Benutzereinstellung (Standard #ddbf86).
  * Für unser Design immer weiß mit dunkler Schrift; Hinweis-Leisten (info/warning) bleiben farbig.
  */
-.v-application .v-app-bar.v-toolbar:not(.bg-info):not(.bg-warning) {
+:is(.v-application, .v-overlay-container) .v-app-bar.v-toolbar:not(.bg-info):not(.bg-warning) {
     background: var(--rz-bg) !important;
     color: var(--rz-ink) !important;
     border-bottom: 1px solid var(--rz-border);
 }
-.v-application .v-bottom-navigation {
+:is(.v-application, .v-overlay-container) .v-bottom-navigation {
     background: var(--rz-bg) !important;
     border-top: 1px solid var(--rz-border);
     box-shadow: none !important;
 }
-.v-application .v-navigation-drawer {
+:is(.v-application, .v-overlay-container) .v-navigation-drawer {
     background: var(--rz-bg);
     border-color: var(--rz-border);
 }
-.v-application .v-list-item--active > .v-list-item__overlay {
+:is(.v-application, .v-overlay-container) .v-list-item--active > .v-list-item__overlay {
     opacity: 0.08;
 }
 
@@ -142,4 +142,88 @@ html, body, .v-application,
     font-family: var(--rz-font);
     color: var(--rz-ink-2);
     font-size: 0.9375rem;
+}
+
+/* ---------- Bottom-Sheets und Icon-Buttons der eigenen Komponenten ---------- */
+.rz-sheet {
+    background: var(--rz-bg);
+    border-radius: var(--rz-radius-sheet) var(--rz-radius-sheet) 0 0;
+    padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.rz-sheet__handle {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--rz-border-strong);
+    margin: 4px auto 8px;
+}
+.rz-sheet__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.rz-sheet__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--rz-ink);
+    margin: 0;
+}
+.rz-sheet__orig {
+    color: var(--rz-muted);
+    font-size: 0.875rem;
+    margin: 2px 0 0;
+}
+.rz-sheet__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+}
+.rz-sheet__row {
+    display: flex;
+    gap: 10px;
+}
+.rz-sheet__amount { flex: 0 0 40%; }
+.rz-sheet__unit { flex: 1 1 auto; }
+.rz-sheet__hint {
+    color: var(--rz-muted);
+    font-size: 0.8125rem;
+    margin: -8px 0 0 4px;
+}
+.rz-sheet__secondary {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.rz-sheet__secondary > * { flex: 1 1 0; }
+.rz-sheet__error {
+    color: rgb(var(--v-theme-error));
+    font-size: 0.875rem;
+    margin: 0;
+}
+.rz-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--rz-border);
+    background: var(--rz-bg);
+    color: var(--rz-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.rz-icon-btn:focus-visible { outline: 2px solid var(--rz-accent); outline-offset: 2px; }
+
+/* ---------- Immersive Seiten (Rezeptansicht: Foto bis ganz nach oben) ---------- */
+html.rz-immersive .v-app-bar:not(.bg-info):not(.bg-warning) {
+    display: none !important;
+}
+html.rz-immersive .v-main {
+    --v-layout-top: 0px;
+    padding-top: 0 !important;
 }
