@@ -80,6 +80,17 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 | Import | Schritt-Leiste und Karten-Liste funktionieren, wirken aber technisch (KI, JSON, URL-Liste) | Phase 6 (vereinfachter Import-Dialog) |
 | Icons allgemein | Font Awesome „solid" statt schlichter Strich-Icons; eigene Komponenten nutzen ab Phase 5 Strich-SVGs | Phase 5/6 |
 
+## Phase 4 – „Unsere Version" Backend (in Arbeit)
+
+**Plan (Abgleich Entwurf ↔ Tandoor-Models, Verbesserungen in E5):**
+1. Models in `cookbook_ext`: `RecipeVariant`, `VariantIngredientChange`, `VariantStepNote`, zusätzlich `CookLogPhoto` (E4). Alle mit `space`-FK + `ScopedManager` wie in Tandoor.
+2. Migration, Admin.
+3. Service `services/effective.py`: `effective_recipe(recipe, variant=None, servings=None)` → Schritte mit Zutaten (Status original/geändert/ergänzt, entfernte separat), Notizen, Zusatzschritte, skaliert auf n Portionen.
+4. API (DRF, Tandoor-Stil, Router über Plugin): `/api/recipe-variant/` (+ `effective`, `shopping`), `/api/variant-ingredient-change/`, `/api/variant-step-note/`, `/api/effective-recipe/<recipe>/`, `/api/cook-log-photo/`, `/api/recipe-rating/`.
+5. Berechtigungen: lesen = wer das Rezept sehen darf (inkl. Gäste), schreiben = Gruppe `user` + Rezept sichtbar; immer nur eigener Space.
+6. Einkaufsliste: `POST /api/recipe-variant/<id>/shopping/` legt `ShoppingListRecipe` + Einträge aus der effektiven Zutatenliste an.
+7. Tests: Ersetzen, Ergänzen, Entfernen, Mengenänderung, Skalierung, Schrittnotizen/Zusatzschritte, Berechtigungen, Einkaufsliste, Fotos.
+
 ## Probleme
 
 - `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.

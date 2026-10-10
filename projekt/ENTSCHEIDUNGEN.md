@@ -35,3 +35,16 @@ Entscheidungen, die während der Arbeit ohne Rückfrage getroffen wurden. Format
 - **Wahl:** (b) **CookLog = Bewertung**. Zusätzlich in `cookbook_ext` ein Model **`CookLogPhoto`** (cook_log FK, Bild, space, created_by) für beliebig viele Fotos pro Bewertung. Die Begrenzung auf 1–5 Sterne und der Haushalts-Durchschnitt (alle Benutzer, mit Anzahl) kommen über einen eigenen, schlanken Endpunkt bzw. die UI. `Comment` wird nicht genutzt.
 - **Grund:** keine Doppelung, Tandoors vorhandene Funktionen (Filter „Bewertung ≥ 4", „zuletzt gekocht", Aktivität) bleiben wirksam, nur die echte Lücke (Fotos) wird ergänzt.
 - **Umsetzung:** Das Foto-Model kommt mit Phase 4/5 (Backend-Teil in Phase 4, UI in Phase 5 „Bewertung oder Foto hinzufügen").
+
+## E5 – Datenmodell „Unsere Version" nach Abgleich mit Tandoor (2026-10-10)
+
+Abweichungen vom Entwurf in CLAUDE.md und warum:
+
+1. **Zutaten hängen in Tandoor an Schritten**, nicht am Rezept (`Recipe.steps` → `Step.ingredients`). Deshalb hat `VariantIngredientChange` zusätzlich ein Feld **`step`** (für `add`: in welchen Schritt die neue Zutat gehört; leer = in den letzten Schritt) und **`order`** (Position).
+2. **„Menge ändern" ist kein eigener Typ**, sondern `replace`, bei dem nur `amount` (und ggf. `unit`) gesetzt ist. Bei `replace` gilt: leeres Feld = Originalwert behalten. So bleibt es bei den drei Aktionen `replace | add | remove` aus dem Entwurf, und eine einzige Änderung kann Zutat und Menge gleichzeitig ändern.
+3. **`on_delete=SET_NULL`** für `ingredient`/`step`: Wird das Originalrezept später bearbeitet und eine Zutat gelöscht, verschwindet unsere Änderung nicht still, sondern wird als „verwaist" gemeldet (`orphaned` in der API) und kann in der UI aufgeräumt werden.
+4. **Zusatzschritte** = `VariantStepNote` ohne `step`; `position` = Index in der Original-Schrittliste, **vor** dem der neue Schritt eingefügt wird (≥ Anzahl Schritte → am Ende). Zusätzlich optional `time` (Minuten) für Timer im Kochmodus.
+5. **`space`-FK auf allen Models** + `ScopedManager` (Tandoor-Standard, Schutz gegen Space-übergreifende Zugriffe). Der Space wird beim Speichern aus dem Rezept übernommen.
+6. **`is_default`**: höchstens eine Standard-Variante pro Rezept (DB-Constraint). Die Rezeptansicht öffnet dann direkt „Unsere Version".
+7. **Rechte:** Varianten sind Haushaltssache – alle Benutzer (Gruppe `user`) des Spaces, die das Rezept sehen dürfen, dürfen die Variante bearbeiten (nicht nur der Ersteller). Gäste nur lesen.
+8. **Einkaufsliste:** Einträge aus geänderten/ergänzten Zutaten werden **ohne** Verweis auf die Original-Zutat (`ingredient=None`) angelegt, unveränderte mit Verweis. Grund: Tandoor skaliert beim späteren Ändern der Portionen anhand `ingredient.amount` – das wäre bei geänderten Mengen falsch. Nachteil: Ändert man auf der Einkaufsliste nachträglich die Portionen, werden geänderte/ergänzte Einträge nicht mitskaliert (wie bei Tandoors manuellen Einträgen).
