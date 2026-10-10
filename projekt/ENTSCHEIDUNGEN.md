@@ -22,3 +22,16 @@ Entscheidungen, die während der Arbeit ohne Rückfrage getroffen wurden. Format
 - **Wahl:** (b) Plugin-System. Einzige Kernänderung ist `.gitignore` (die beiden Plugin-Ordner waren komplett ignoriert; jetzt wird nur unser Plugin wieder aufgenommen).
 - **Grund:** Null Änderungen an Python-/Vue-Kerncode für die Registrierung → Upstream-Merges bleiben konfliktfrei. Der Mechanismus ist offiziell von Tandoor vorgesehen.
 - **Hinweis:** Der App-Label ist `cookbook_ext`, der Python-Pfad `recipes.plugins.cookbook_ext`.
+
+## E4 – Decken CookLog und Kommentare unsere Bewertungen ab? (2026-10-10)
+
+- **Anforderung:** pro Rezept beliebig viele Bewertungen (1–5 Sterne), jeweils mit Datum, Kommentar und optionalen Fotos.
+- **Befund im Code:**
+  - `CookLog` (recipe, rating int, comment Text, servings, created_by, created_at **editierbar**) – beliebig viele pro Rezept und Benutzer. Das Vue-3-Frontend nutzt CookLog bereits genau so („Aktivität" mit Sternen, Kommentar, Datum in `RecipeActivity.vue`), und Tandoors Suche/Filter nach Bewertung bauen darauf auf (`Recipe.rating` = Durchschnitt der CookLogs).
+  - `Comment` (recipe, text) – Altlast aus Tandoor 1, hat weder Sterne noch Datum-Eingabe und wird im Vue-3-Frontend nicht mehr verwendet.
+  - **Fotos:** gibt es bei keinem der beiden.
+  - Kleinere Lücken: `rating` ist nicht auf 1–5 beschränkt (nur `int`), und `Recipe.rating` zeigt den Schnitt **nur des aktuellen Benutzers**.
+- **Optionen:** (a) eigene Tabelle `Review` (dupliziert CookLog, Tandoors Suche nach Sternen würde sie nicht kennen). (b) CookLog als Bewertung nutzen + eigene Tabelle nur für Fotos. (c) Kommentare erweitern.
+- **Wahl:** (b) **CookLog = Bewertung**. Zusätzlich in `cookbook_ext` ein Model **`CookLogPhoto`** (cook_log FK, Bild, space, created_by) für beliebig viele Fotos pro Bewertung. Die Begrenzung auf 1–5 Sterne und der Haushalts-Durchschnitt (alle Benutzer, mit Anzahl) kommen über einen eigenen, schlanken Endpunkt bzw. die UI. `Comment` wird nicht genutzt.
+- **Grund:** keine Doppelung, Tandoors vorhandene Funktionen (Filter „Bewertung ≥ 4", „zuletzt gekocht", Aktivität) bleiben wirksam, nur die echte Lücke (Fotos) wird ergänzt.
+- **Umsetzung:** Das Foto-Model kommt mit Phase 4/5 (Backend-Teil in Phase 4, UI in Phase 5 „Bewertung oder Foto hinzufügen").

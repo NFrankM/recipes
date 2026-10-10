@@ -34,6 +34,25 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 - Funktionstest mit Docker-Stub (simuliert `docker compose exec/run`): 30 simulierte Tage → genau 7 daily + 4 weekly (Sonntage) übrig; Fehlerfälle (kein BACKUP_DIR, ungültige Zahl) → Exit 1; Restore stellt Dump und Bilder wieder her; manipulierte Sicherung → Abbruch wegen Prüfsumme; Rückfrage ≠ JA → Abbruch
 - `docker compose config` → **nicht möglich** (kein Docker auf dem Mac), muss auf der LXC laufen
 
+## Phase 2 – Architektur & Dev-Umgebung ✅
+
+**Plan:** Repo analysieren (Models, API, Rechte, vue3), ARCHITEKTUR.md schreiben; Dev-Umgebung ohne Docker (SQLite, Vite-HMR) mit Bootstrap-Skript; App `cookbook_ext` mit minimalem Eingriff registrieren; CookLog/Kommentare bewerten.
+
+**Erledigt:**
+- `projekt/ARCHITEKTUR.md` – Models (Recipe, Step, Ingredient, Food, Unit, Keyword, CookLog, Comment, Shopping*), API-Stil, Space/User-Berechtigungen, vue3-Aufbau (Routing, Theme, Komponenten, Stores), Plugin-System
+- **Wichtigster Fund:** Tandoor hat ein Plugin-System für Backend (`recipes/plugins/`) und Frontend (`vue3/src/plugins/`). `cookbook_ext` liegt dort → **keine** Änderung an Python-/Vue-Kerncode für die Registrierung, nur `.gitignore` (E3, CORE_CHANGES.md)
+- `recipes/plugins/cookbook_ext/` angelegt (AppConfig, leerer API-Router, Tests)
+- `projekt/dev/setup.sh` (Bootstrap ohne Admin-Rechte), `projekt/dev/env.sh`, `projekt/DEV.md`
+- Bewertungen: Entscheidung E4 → CookLog = Bewertung, zusätzlich eigenes `CookLogPhoto` für Fotos
+
+**Getestet mit:**
+- `python manage.py check` → ok, `PLUGIN cookbook_ext loaded`
+- `pytest recipes/plugins/cookbook_ext -o addopts=""` → 2 passed (Plugin in INSTALLED_APPS und PLUGINS)
+- `projekt/dev/setup.sh` erneut ausgeführt → idempotent, ok
+- `runserver` → `/` 302 auf `/setup/`, `/setup/` 200; `yarn dev` + `manage.py check` → „Vite Dev Server is running" (HMR aktiv)
+- `yarn build` (vue3) → ok
+- Tandoors gesamte Test-Suite: `pytest cookbook/tests -n 8` → **1259 passed, 18 skipped, 1 failed** (`test_markdown_renderer` – schlägt auch **ohne** unser Plugin fehl, Upstream-Problem auf `develop`)
+
 ## Probleme
 
 - `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.
