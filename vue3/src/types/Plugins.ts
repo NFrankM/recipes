@@ -18,6 +18,7 @@ export type TandoorPlugin = {
 
     databasePageComponent?: Component,
     settingsComponent?: Component,
+    layoutComponents?: Component[], // Rezept-App: werden in Tandoor.vue innerhalb von <v-app> gerendert
 
     disabled?: boolean
 }

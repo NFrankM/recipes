@@ -1,6 +1,7 @@
 import {TandoorPlugin} from '@/types/Plugins.ts'
 import vuetify from '@/vuetify'
 import {applyRezeptTheme} from './theme/applyTheme'
+import RzBottomNav from './components/RzBottomNav.vue'
 
 /**
  * Frontend-Teil der Rezept-App-Erweiterungen (Gegenstück zu recipes/plugins/cookbook_ext).
@@ -16,6 +17,27 @@ export const plugin: TandoorPlugin = {
     localeFiles: import.meta.glob('@/plugins/cookbook_ext/locales/*.json'),
 
     routes: [
+        // Übersicht ersetzt Tandoors Startseite (gleicher Trick wie bei der Rezeptansicht, E6)
+        {
+            path: '/', name: 'StartPage', meta: {title: 'Home'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzHomePage.vue'),
+        },
+        {
+            path: '/start-klassisch', name: 'StartPageTandoor', meta: {title: 'Home'},
+            component: () => import('@/pages/StartPage.vue'),
+        },
+        {
+            path: '/recipe/:id/kochen', name: 'RzCookPage', props: true, meta: {title: 'Kochmodus'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzCookPage.vue'),
+        },
+        {
+            path: '/einkauf', name: 'RzShoppingPage', meta: {title: 'Shopping_list'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzShoppingPage.vue'),
+        },
+        {
+            path: '/import', name: 'RzImportPage', meta: {title: 'Import'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzImportPage.vue'),
+        },
         // Ersetzt Tandoors Rezeptansicht: gleicher Routenname → vue-router entfernt die Tandoor-Route beim Hinzufügen,
         // alle bestehenden Links ({name: 'RecipeViewPage'}) führen damit automatisch zur neuen Ansicht (ENTSCHEIDUNGEN.md E6).
         {
@@ -33,4 +55,7 @@ export const plugin: TandoorPlugin = {
     navigationDrawer: [],
     bottomNavigation: [],
     userNavigation: [],
+
+    // eigene untere Navigation (Hook in Tandoor.vue, siehe projekt/CORE_CHANGES.md)
+    layoutComponents: [RzBottomNav],
 }

@@ -111,7 +111,7 @@ watch(() => props.modelValue, open => {
         unit: i?.unit?.name ?? null,
         food: i?.food?.name ?? null,
         note: i?.note ?? '',
-        step: props.defaultStepId ?? stepItems.value.at(-1)?.value ?? null,
+        step: props.defaultStepId ?? stepItems.value[stepItems.value.length - 1]?.value ?? null,
         noAmount: !!i?.no_amount && i.status !== 'added',
     }
     loadUnits()

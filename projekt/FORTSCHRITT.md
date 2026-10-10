@@ -131,6 +131,23 @@ Phasen 1–5 sind fertig, getestet und committet (nur lokal, Push braucht deine 
 - Screenshots: `projekt/screenshots/phase5/`
 - `pytest recipes/plugins/cookbook_ext` → 53 passed
 
+## Phase 6 – Übersicht, Kochmodus, Einkaufsliste, Import ✅
+
+**Plan je Screen (Details und Abwägungen in E8):**
+- Übersicht: eigene Seite statt Tandoor-Start (Titel + Plus, Suchfeld, Filter-Chips, 2-spaltiges Raster, Endlos-Laden) + eigene untere Leiste über einen Layout-Hook
+- Kochmodus: eigene Vollbild-Seite, ein Schritt pro Screen, Wake Lock, Zutaten des Schritts, Timer aus Zeitangaben
+- Einkaufsliste: schlanke eigene Ansicht auf Tandoors Daten (zusammengefasst, nach Kategorie, abhakbar)
+- Import: URL → Vorschau → speichern mit Tandoors Import-API
+
+**Erledigt:** `pages/RzHomePage.vue`, `components/RzBottomNav.vue`, `pages/RzCookPage.vue` + `services/timers.ts`, `pages/RzShoppingPage.vue`, `pages/RzImportPage.vue`, Kochmodus-Button in der Rezeptansicht, Routen in `plugin.ts`. Kernänderung: 4 Zeilen in `Tandoor.vue`/`Plugins.ts` (CORE_CHANGES.md).
+
+**Getestet mit:**
+- `yarn build` ok, `vue-tsc` ohne Fehler in unseren Dateien
+- `node --experimental-strip-types --test vue3/src/plugins/cookbook_ext/tests/*.test.mjs` → 5/5 (Mengenformat, Plural, Minuten, Timer-Erkennung, Uhr)
+- Playwright bei 390 px, ohne Konsolenfehler: Übersicht (3 Karten, eigene Leiste sichtbar, Tandoors ausgeblendet), Suche „pasta" → 1 Treffer, Chip „Unsere Versionen" → 2, Chip „Vegetarisch" → 2; Kochmodus Schritt 1→3, Timer startet und zählt, Notiz sichtbar, keine Navigation; Einkauf: Gruppen, Abhaken bleibt nach Neuladen, „2 Zitronen" hinzugefügt; Import von bbcgoodfood.com: Vorschau (6 Zutaten, 5 Schritte) → gespeichert mit Bild → neue Rezeptansicht
+- allrecipes.com blockt Server-Abrufe (403) – kein Fehler bei uns, Tandoor zeigt die Meldung an
+- Screenshots: `projekt/screenshots/phase6/`
+
 ## Probleme
 
 - `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.

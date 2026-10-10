@@ -57,6 +57,9 @@ export const rzApi = {
     variants(recipeId: number) {
         return request<RecipeVariant[]>('GET', 'api/recipe-variant', undefined, {recipe: recipeId})
     },
+    allVariants() {
+        return request<RecipeVariant[]>('GET', 'api/recipe-variant')
+    },
     createVariant(recipeId: number, name = 'Unsere Version', isDefault = true) {
         return request<RecipeVariant>('POST', 'api/recipe-variant', {recipe: recipeId, name, is_default: isDefault})
     },

@@ -89,6 +89,12 @@
                         Auf die Einkaufsliste
                     </v-btn>
 
+                    <v-btn variant="outlined" size="large" block class="mt-3" :disabled="!effective?.steps.length"
+                           :to="{name: 'RzCookPage', params: {id: id}, query: {servings: String(servings), ...(mode === 'ours' && currentVariant ? {variant: String(currentVariant.id)} : {})}}">
+                        <rz-icon name="pot" class="me-2"/>
+                        Kochmodus
+                    </v-btn>
+
                     <!-- Schritte -->
                     <h2 class="rz-h2 rz-block">Zubereitung</h2>
                     <ol class="rz-steps">

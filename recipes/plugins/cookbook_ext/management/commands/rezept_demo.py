@@ -16,7 +16,7 @@ from django_scopes import scopes_disabled
 from PIL import Image, ImageDraw
 
 from cookbook.helper.permission_helper import create_space_for_user
-from cookbook.models import CookLog, Food, Ingredient, Keyword, Recipe, Step, Unit
+from cookbook.models import CookLog, Food, Household, Ingredient, Keyword, Recipe, Step, Unit
 
 from ...models import RecipeVariant, VariantIngredientChange, VariantStepNote
 
@@ -107,7 +107,11 @@ class Command(BaseCommand):
             user_space = user.userspace_set.first() or create_space_for_user(user, name='Unser Haushalt')
             space = user_space.space
             space.space_setup_completed = True
+            space.household_setup_completed = True
             space.save()
+            if user_space.household is None:
+                user_space.household = Household.objects.create(name='Unser Haushalt', space=space)
+                user_space.save()
 
             for r in REZEPTE:
                 if Recipe.objects.filter(space=space, name=r['name']).exists():

@@ -227,3 +227,21 @@ html.rz-immersive .v-main {
     --v-layout-top: 0px;
     padding-top: 0 !important;
 }
+
+/* ---------- Eigene untere Navigation statt Tandoors Leiste ---------- */
+html.rz-own-nav .v-bottom-navigation {
+    display: none !important;
+}
+html.rz-own-nav .v-main {
+    padding-bottom: calc(61px + env(safe-area-inset-bottom)) !important;
+}
+
+/* ---------- Vollbild (Kochmodus): keine Navigation ---------- */
+html.rz-fullscreen .v-bottom-navigation,
+html.rz-fullscreen .v-navigation-drawer {
+    display: none !important;
+}
+html.rz-fullscreen .v-main {
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+}

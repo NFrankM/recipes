@@ -112,6 +112,9 @@
             </v-btn>
         </v-bottom-navigation>
 
+        <!-- Rezept-App: Layout-Komponenten aus Plugins (z. B. eigene untere Navigation), siehe projekt/CORE_CHANGES.md -->
+        <component :is="c" v-for="(c, i) in pluginLayoutComponents" :key="i"></component>
+
         <v-snackbar-queued
             :vertical="true"
             location="top center"
@@ -138,8 +141,10 @@ import {useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
 import {THousehold, TSpace} from "@/types/Models.ts";
 import MenuUserInfo from "@/components/display/MenuUserInfo.vue";
+import {TANDOOR_PLUGINS} from "@/types/Plugins.ts"; // Rezept-App: Plugin-Layout-Hook
 
 const {lgAndUp} = useDisplay()
+const pluginLayoutComponents = TANDOOR_PLUGINS.flatMap(p => p.layoutComponents ?? []) // Rezept-App: Plugin-Layout-Hook
 const {t} = useI18n()
 
 const title = useTitle()
