@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from cookbook.models import CookLog, Food, Ingredient, Step, Unit
@@ -24,6 +26,7 @@ def _named(obj):
     return {'id': obj.pk, 'name': obj.name, 'plural_name': getattr(obj, 'plural_name', None)}
 
 
+@extend_schema_field(OpenApiTypes.OBJECT)
 class NamedObjectField(serializers.Field):
     """Liest Food/Unit als {id, name, plural_name}."""
 
@@ -125,6 +128,7 @@ class RecipeVariantSerializer(serializers.ModelSerializer):
         model = RecipeVariant
         fields = ('id', 'recipe', 'name', 'is_default', 'created_by', 'created_at', 'updated_at', 'ingredient_changes', 'step_notes')
         read_only_fields = ('id', 'created_by', 'created_at', 'updated_at')
+        validators = []  # Eindeutigkeit (Name, Standard) prüfen validate()/create()/update() mit deutschen Meldungen
 
     def get_fields(self):
         fields = super().get_fields()

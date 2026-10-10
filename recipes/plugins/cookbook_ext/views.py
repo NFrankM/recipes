@@ -40,6 +40,7 @@ class RecipeVariantViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeVariantSerializer
     permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     def get_queryset(self):
         qs = self.queryset.filter(space=self.request.space, recipe__in=visible_recipes(self.request)) \
@@ -77,6 +78,7 @@ class VariantIngredientChangeViewSet(viewsets.ModelViewSet):
     serializer_class = VariantIngredientChangeSerializer
     permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     def get_queryset(self):
         qs = self.queryset.filter(space=self.request.space, variant__recipe__in=visible_recipes(self.request)) \
@@ -92,6 +94,7 @@ class VariantStepNoteViewSet(viewsets.ModelViewSet):
     serializer_class = VariantStepNoteSerializer
     permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     def get_queryset(self):
         qs = self.queryset.filter(space=self.request.space, variant__recipe__in=visible_recipes(self.request)) \
@@ -108,11 +111,13 @@ class EffectiveRecipeViewSet(viewsets.GenericViewSet):
     """
     permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     def get_queryset(self):
         return visible_recipes(self.request)
 
-    @extend_schema(parameters=[SERVINGS_PARAM, OpenApiParameter(name='variant', type=int)], responses=OpenApiTypes.OBJECT)
+    @extend_schema(parameters=[OpenApiParameter(name='id', type=int, location=OpenApiParameter.PATH, description='Rezept-ID'),
+                               SERVINGS_PARAM, OpenApiParameter(name='variant', type=int)], responses=OpenApiTypes.OBJECT)
     def retrieve(self, request, pk=None):
         recipe = get_object_or_404(self.get_queryset(), pk=pk)
         self.check_object_permissions(request, recipe)
@@ -131,6 +136,7 @@ class CookLogPhotoViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mi
     permission_classes = [CookLogPhotoPermission & CustomTokenHasReadWriteScope]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     def get_queryset(self):
         qs = self.queryset.filter(space=self.request.space, cook_log__recipe__in=visible_recipes(self.request)) \
@@ -163,6 +169,7 @@ class RecipeRatingViewSet(viewsets.GenericViewSet):
     """
     permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
     pagination_class = None
+    pagination_disabled = True  # Tandoor-Konvention (test_schemas): Listen pro Rezept sind klein
 
     @extend_schema(parameters=[OpenApiParameter(name='recipe', type=int, many=True)], responses=OpenApiTypes.OBJECT)
     def list(self, request):

@@ -80,7 +80,7 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 | Import | Schritt-Leiste und Karten-Liste funktionieren, wirken aber technisch (KI, JSON, URL-Liste) | Phase 6 (vereinfachter Import-Dialog) |
 | Icons allgemein | Font Awesome „solid" statt schlichter Strich-Icons; eigene Komponenten nutzen ab Phase 5 Strich-SVGs | Phase 5/6 |
 
-## Phase 4 – „Unsere Version" Backend (in Arbeit)
+## Phase 4 – „Unsere Version" Backend ✅
 
 **Plan (Abgleich Entwurf ↔ Tandoor-Models, Verbesserungen in E5):**
 1. Models in `cookbook_ext`: `RecipeVariant`, `VariantIngredientChange`, `VariantStepNote`, zusätzlich `CookLogPhoto` (E4). Alle mit `space`-FK + `ScopedManager` wie in Tandoor.
@@ -90,6 +90,21 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 5. Berechtigungen: lesen = wer das Rezept sehen darf (inkl. Gäste), schreiben = Gruppe `user` + Rezept sichtbar; immer nur eigener Space.
 6. Einkaufsliste: `POST /api/recipe-variant/<id>/shopping/` legt `ShoppingListRecipe` + Einträge aus der effektiven Zutatenliste an.
 7. Tests: Ersetzen, Ergänzen, Entfernen, Mengenänderung, Skalierung, Schrittnotizen/Zusatzschritte, Berechtigungen, Einkaufsliste, Fotos.
+
+**Erledigt:**
+- `recipes/plugins/cookbook_ext/models.py` + `migrations/0001_initial.py` – 4 Models, Constraints (Name eindeutig pro Rezept, max. eine Standard-Variante), `clean()`-Validierung (Zutat/Schritt muss zum Rezept gehören, Space-Prüfung)
+- `admin.py` – Varianten mit Inline-Änderungen/-Notizen
+- `services/effective.py` – `effective_recipe()` (Original + Änderungen, Status original/changed/added/removed, Zusatzschritte, Skalierung, verwaiste Änderungen)
+- `services/shopping.py` – `add_to_shopping_list()` (Tandoor-Einkaufsliste, berücksichtigt `ignore_shopping` und „vorrätig")
+- `serializers.py`, `views.py`, `permissions.py`, `urls.py` – 6 Endpunkte, Doku in `projekt/API_ERWEITERUNGEN.md`
+- Bewertungen: `/api/recipe-rating/` (Schnitt + Anzahl über alle Benutzer), `/api/cook-log-photo/` (Upload mit Tandoors Bildverarbeitung)
+- `manage.py rezept_demo` legt jetzt auch eine „Unsere Version" (alle Änderungsarten) und zwei Bewertungen an
+
+**Getestet mit:**
+- `pytest recipes/plugins/cookbook_ext -o addopts=""` → **53 passed** (Service: Ersetzen, Menge, Menge+Einheit, Ergänzen mit/ohne Schritt, Entfernen, Skalierung 1/2/4/6 Portionen + Bruchteile + ungültige Werte, Notizen, Zusatzschritte vorne/mitte/ende, Original unverändert, verwaiste Änderungen, Validierung; API: CRUD, Standard-Variante, Fehlermeldungen, Einkaufsliste inkl. Skalierung, Berechtigungen für anonym/Gast/Benutzer/zweiter Benutzer/Admin/anderer Space/privates + geteiltes Rezept, Bewertungsschnitt, Foto-Upload/-Rechte/Dateityp)
+- `flake8 --max-line-length 160` → sauber; `manage.py spectacular` → keine Warnungen zu unseren Endpunkten
+- Tandoor-Suite: zunächst 5 neue Fehler in `test_schemas.py` (Tandoor verlangt explizite Pagination-Angabe) → mit `pagination_disabled = True` behoben; `test_schemas.py` + unsere Tests: 322 passed
+- Nur SQLite getestet (kein PostgreSQL lokal) – die Models nutzen nichts PostgreSQL-Spezifisches, die Migration ist Standard-Django
 
 ## Probleme
 

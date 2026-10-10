@@ -16,7 +16,9 @@ from django_scopes import scopes_disabled
 from PIL import Image, ImageDraw
 
 from cookbook.helper.permission_helper import create_space_for_user
-from cookbook.models import Food, Ingredient, Keyword, Recipe, Step, Unit
+from cookbook.models import CookLog, Food, Ingredient, Keyword, Recipe, Step, Unit
+
+from ...models import RecipeVariant, VariantIngredientChange, VariantStepNote
 
 REZEPTE = [
     {
@@ -82,6 +84,10 @@ def _demo_bild(rgb):
     return ContentFile(buf.getvalue())
 
 
+def _food(space, name):
+    return Food.objects.filter(space=space, name=name).first() or Food.add_root(name=name, space=space)
+
+
 class Command(BaseCommand):
     help = 'Legt lokale Demo-Daten an (nur Entwicklung).'
 
@@ -125,4 +131,26 @@ class Command(BaseCommand):
                     recipe.steps.add(step)
                 self.stdout.write(f'Rezept angelegt: {recipe.name}')
 
+            self._demo_variante(space, user)
+
         self.stdout.write(self.style.SUCCESS(f"Fertig. Login: {options['user']} / {options['password'] if created else '(unverändert)'}"))
+
+    def _demo_variante(self, space, user):
+        """„Unsere Version" der Shakshuka mit allen Arten von Änderungen + zwei Bewertungen."""
+        recipe = Recipe.objects.filter(space=space, name='Shakshuka mit Feta').first()
+        if recipe is None or RecipeVariant.objects.filter(recipe=recipe).exists():
+            return
+        v = RecipeVariant.objects.create(recipe=recipe, name='Unsere Version', is_default=True, created_by=user)
+        steps = list(recipe.steps.order_by('order'))
+        ing = {i.food.name: i for i in Ingredient.objects.filter(step__recipe=recipe).select_related('food')}
+        C = VariantIngredientChange
+        C.objects.create(variant=v, action=C.REPLACE, ingredient=ing['Feta'], amount=Decimal(150))
+        C.objects.create(variant=v, action=C.REPLACE, ingredient=ing['Koriander'], food=_food(space, 'Petersilie'))
+        C.objects.create(variant=v, action=C.REMOVE, ingredient=ing['Kreuzkümmel'])
+        C.objects.create(variant=v, action=C.ADD, step=steps[1], food=_food(space, 'Chiliflocken'), amount=Decimal('0.5'),
+                         unit=Unit.objects.get_or_create(space=space, name='TL')[0], order=10)
+        VariantStepNote.objects.create(variant=v, step=steps[2], text='Deckel drauf – dann werden die Eier gleichmäßig gar.')
+        VariantStepNote.objects.create(variant=v, step=None, position=len(steps), text='Mit geröstetem Fladenbrot servieren.')
+        CookLog.objects.create(recipe=recipe, rating=5, comment='Mit Petersilie viel besser!', servings=2, created_by=user, space=space)
+        CookLog.objects.create(recipe=recipe, rating=4, comment='Etwas weniger Chili nächstes Mal.', servings=4, created_by=user, space=space)
+        self.stdout.write('„Unsere Version" für Shakshuka angelegt')
