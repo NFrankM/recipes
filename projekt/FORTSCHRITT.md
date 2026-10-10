@@ -53,6 +53,33 @@ Umgebungsprüfung abgeschlossen, Phase 1 startet.
 - `yarn build` (vue3) → ok
 - Tandoors gesamte Test-Suite: `pytest cookbook/tests -n 8` → **1259 passed, 18 skipped, 1 failed** (`test_markdown_renderer` – schlägt auch **ohne** unser Plugin fehl, Upstream-Problem auf `develop`)
 
+## Phase 3 – Theme & Grundoptik ✅
+
+**Plan:** Design-Tokens als Vuetify-Theme, Plus Jakarta Sans lokal, Radien/Buttons/Chips/Felder als Defaults – ohne Tandoors `vuetify.ts` anzufassen (zentrale Stelle: unser Frontend-Plugin). Danach Kontrolle bei 390 px.
+
+**Erledigt:**
+- `vue3/src/plugins/cookbook_ext/plugin.ts` – Frontend-Plugin, wird von Tandoor automatisch vor dem Mount geladen
+- `theme/applyTheme.ts` – überschreibt das Standard-Theme `light` (Farben + `rz-*`-Tokens, Rand-Variablen) und ergänzt globale Vuetify-Defaults (Karten flach mit Rand und 16 px, Felder outlined 14 px, Chips als Pills, Sterne in accent-dark …). Tandoors eigene Defaults bleiben per Merge erhalten. → **keine Kernänderung**
+- `theme/rezept-theme.css` – Plus Jakarta Sans (Variable Font, latin + latin-ext, **lokal gebündelt**, kein Google-CDN; OFL-Lizenz liegt bei), Typografie (Titel 30 px, H2 20 px, Text 15 px), Radien-Klassen `rounded-rz*`, Buttons ohne Großbuchstaben und mind. 44 px hoch, helle App-Bar/untere Leiste
+- `theme/tokens.ts` – Tokens aus CLAUDE.md als TS-Konstanten und CSS-Variablen `--rz-*`
+- Dev-Hilfen: `manage.py rezept_demo` (Demo-Daten), `projekt/dev/screenshots.py` (Playwright, 390 × 844)
+
+**Getestet mit:**
+- `yarn build` → ok; Font-Dateien landen im Bundle
+- Screenshots 390 px: `projekt/screenshots/phase3/` (Start, Suche, Rezept, Einkauf, Import) – Schrift, Farben, App-Bar und Radien greifen überall
+
+**Noch stark vom Zieldesign abweichende Screens (390 px):**
+| Screen | Abweichung | Wann |
+|---|---|---|
+| Übersicht/Start (`/`) | Tandoor-Startseite = Essensplan-Tag + „Zufällige Rezepte"-Karussell; es fehlen Titel + Plus-Button, Suchfeld, Filter-Chips und 2-spaltiges Raster | Phase 6 (eigene Übersicht) |
+| Untere Leiste | Tandoor: Rezepte / Essensplan / Einkauf / Menü, nur Icons, gefüllte Font-Awesome-Icons; Ziel: Rezepte / Suche / Einkauf / Import mit Beschriftung und Strich-Icons | Phase 6 |
+| App-Bar | Tandoor-Logo und Schriftzug „Tandoor" | Phase 6 (eigener Titel) |
+| Rezeptansicht | kein großes Foto mit überlappendem Sheet, kein Segment „Original/Unsere Version", Portionen nur als Info statt Stepper, Zutaten pro Schritt als Tabelle mit Checkboxen | Phase 5 (neue Ansicht) |
+| Suche (`/advanced-search`) | 2-spaltiges Raster ist da, aber Karten mit Outline-Chips und blasser Zeit-Chip; keine Filter-Chips | Phase 6 |
+| Einkaufsliste | funktional ok, aber Tabs als Icons, Eingabefeld „filled" (Tandoor setzt die Variante explizit), keine Gruppierung nach Kategorie sichtbar ohne Supermarkt | Phase 6 |
+| Import | Schritt-Leiste und Karten-Liste funktionieren, wirken aber technisch (KI, JSON, URL-Liste) | Phase 6 (vereinfachter Import-Dialog) |
+| Icons allgemein | Font Awesome „solid" statt schlichter Strich-Icons; eigene Komponenten nutzen ab Phase 5 Strich-SVGs | Phase 5/6 |
+
 ## Probleme
 
 - `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.

@@ -38,6 +38,17 @@ Aufruf: **http://localhost:8000**. Django erkennt beim Start den laufenden Vite-
 
 Vom Handy im WLAN testen: `python manage.py runserver 0.0.0.0:8000` und in `.env` `DJANGO_VITE_DEV_SERVER_HOST=<IP des Macs>` setzen – oder einfacher: Build erzeugen (unten) und nur Django starten.
 
+## Demo-Daten und Screenshots
+
+```bash
+source projekt/dev/env.sh
+python manage.py rezept_demo                 # Benutzer demo / demo1234, Space „Unser Haushalt", 3 Rezepte mit Bild (nur mit DEBUG=1)
+uv pip install --python venv/bin/python playwright && python -m playwright install chromium   # einmalig, landet in .tools/
+python projekt/dev/screenshots.py            # Screenshots in 390 px Breite nach projekt/screenshots/
+```
+
+Hinweis: Nach `yarn build` den Django-Server neu starten – django-vite liest das Manifest nur beim Start.
+
 ## Datenbank
 
 - **Standard lokal: SQLite** (`db.sqlite3` im Repo-Root, gitignored). Grund: kein Docker auf dem Mac (E2).
