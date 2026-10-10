@@ -2,8 +2,14 @@
 
 Eigene Dokumentation zum Fork. Tandoors Original-Doku liegt in `docs/`.
 
+- `FORTSCHRITT.md` – Stand, Tests, offene Punkte (Protokoll des Nachtlaufs)
+- `ENTSCHEIDUNGEN.md` – getroffene Entscheidungen mit Begründung
 - `CORE_CHANGES.md` – Änderungen an Tandoor-Kerndateien
-- weitere Dateien entstehen in den Phasen aus `../PROMPTS.md` (SETUP_LXC, BACKUP, ARCHITEKTUR, DEV, UPDATE)
+- `ARCHITEKTUR.md` – relevante Tandoor-Stellen, Plugin-System
+- `API_ERWEITERUNGEN.md` – unsere API (Varianten, effektive Fassung, Bewertungen, Fotos)
+- `DEV.md` – lokale Entwicklung (`dev/setup.sh`, `dev/env.sh`, Demo-Daten, Screenshots)
+- `SETUP_LXC.md`, `BACKUP.md`, `UPDATE.md` – Betrieb
+- `screenshots/` – Stand der Oberfläche bei 390 px
 
 ## Lokal klonen (Mac)
 

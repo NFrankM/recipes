@@ -218,8 +218,10 @@ const canWrite = computed(() => {
 
 onMounted(() => {
     document.documentElement.classList.add('rz-immersive')
-    // geteilte Links und nicht angemeldete Besucher: Tandoors Ansicht (kann Share-Links)
-    if (route.query.share || !prefs.isAuthenticated) {
+    // Geteilte Links (?share=…): Tandoors Ansicht, nur sie kann Share-Links. Ohne Login gelangt man laut
+    // cookbook/views/views.py:index nur mit share-Parameter in die App – isAuthenticated wird hier bewusst
+    // nicht geprüft, weil die Benutzereinstellungen beim ersten Rendern evtl. noch nicht geladen sind.
+    if (route.query.share) {
         router.replace({name: 'RecipeViewPageTandoor', params: {id: props.id}, query: route.query})
         return
     }

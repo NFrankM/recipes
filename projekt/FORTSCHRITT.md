@@ -2,7 +2,23 @@
 
 ## Stand jetzt
 
-Phasen 1–5 sind fertig, getestet und committet (nur lokal, Push braucht deine Anmeldung). Deployment-Dateien und Backup-Skripte liegen in `deploy/`, konnten mangels Docker aber nur statisch und mit einem Docker-Stub geprüft werden. Unsere Erweiterungen laufen komplett über Tandoors Plugin-System (`recipes/plugins/cookbook_ext`, `vue3/src/plugins/cookbook_ext`) – am Tandoor-Kern ist nur `.gitignore` geändert. Die neue Rezeptansicht mit „Unsere Version", Editor, Einkaufsliste und Bewertungen mit Fotos funktioniert im Browser (390 px). Phase 6/7 siehe unten.
+**Alle 7 Phasen sind umgesetzt, getestet und lokal committet** (Push braucht deine GitHub-Anmeldung). Unsere Erweiterungen laufen komplett über Tandoors Plugin-System (`recipes/plugins/cookbook_ext`, `vue3/src/plugins/cookbook_ext`); am Tandoor-Kern sind nur `.gitignore` und 4 ergänzte Zeilen in `Tandoor.vue`/`Plugins.ts` geändert (CORE_CHANGES.md). Im Browser (390 px) funktionieren: neue Übersicht, Rezeptansicht mit „Original / Unsere Version", Editor, Skalierung, Einkaufsliste, Bewertungen mit Fotos, Kochmodus mit Timern und URL-Import. **Nicht** real getestet ist alles mit Docker (Compose, Backup/Restore, Image-Build) – das ging auf dem Mac nur statisch und mit Stubs und muss auf der LXC einmal durchlaufen. Lokal lief alles mit SQLite statt PostgreSQL.
+
+**Zum Anschauen ohne Server:** Screenshots in `projekt/screenshots/phase3|5|6/`. **Lokal ausprobieren:** `source projekt/dev/env.sh && python manage.py runserver` → http://localhost:8000, Login `demo` / `demo1234` (nur lokale Demo-Daten).
+
+## Commits (alle auf `main-custom`, nur lokal)
+
+| Commit | Inhalt |
+|---|---|
+| 67f2e4b | Nachtlauf-Grundlage, ENTSCHEIDUNGEN/FORTSCHRITT, `.gitignore` |
+| 05cf6ae | Phase 1 – Deployment, Backup/Restore |
+| a6a7b3e | Phase 2 – Architektur, Dev-Umgebung, Plugin-App |
+| 5bb5ad9 | Phase 3 – Theme |
+| e7c0dd0, 2ffa861 | Phase 4 – Models/Service, API/Tests |
+| adee3e1 | Phase 5 – Rezeptansicht |
+| 27b8a4d | Phase 6 – Übersicht, Navigation, Kochmodus, Einkauf, Import |
+| a486309 | Phase 7 – Image-Build, UPDATE.md |
+| (letzter) | Abschluss: Fix Rezeptansicht, Protokoll |
 
 ## Umgebung (2026-10-10)
 
@@ -166,11 +182,21 @@ Phasen 1–5 sind fertig, getestet und committet (nur lokal, Push braucht deine 
 
 ## Probleme
 
-- `git push origin main-custom` scheitert: keine GitHub-Anmeldung im nicht-interaktiven Terminal (`could not read Username`). Alle Commits liegen nur lokal → morgen pushen.
-- Kein Docker auf dem Mac: Compose-Datei und Skripte sind nur statisch + per Stub geprüft, nicht mit echten Containern.
+- **Push** auf GitHub scheitert (`could not read Username` – keine Anmeldung im nicht-interaktiven Terminal). Alle Commits liegen nur lokal.
+- **Kein Docker** auf dem Mac: `docker compose config`, Backup/Restore mit echten Containern und `docker build` sind ungetestet (nur Schema-Validierung, `bash -n`, Stub-Tests und nachgestellter Frontend-Build).
+- **Kein PostgreSQL** lokal: alle Tests liefen mit SQLite. Unsere Models nutzen nichts PostgreSQL-Spezifisches.
+- Tandoors eigener Test `test_markdown_renderer` schlägt auf `develop` fehl – auch ohne unsere Änderungen (Upstream-Problem, nicht angefasst).
+- Tandoors Frontend hat ~650 TypeScript-Fehler (vorbestehend); unsere Dateien sind fehlerfrei.
+- Fehler unterwegs und behoben: deutsche Anführungszeichen „…" mit ASCII-Schlusszeichen brachen Vue-Attribute; Theme-CSS griff nicht in Dialogen/Bottom-Sheets (Vuetify rendert Overlays außerhalb von `.v-application`); Tandoors Schema-Test verlangt `pagination_disabled`; doppelte Timer im Kochmodus; Umleitung der Rezeptansicht hing an einem asynchron geladenen Login-Status.
+- Nicht umgesetzt / bewusst weggelassen: Supermarkt-Sortierung und mehrere Listen in der eigenen Einkaufsliste (Tandoors Liste bleibt dafür unter `/shopping`), „Teilen"-Ziel für den Import (Web-Share-Target), Übersetzung unserer Texte ins Englische (UI ist deutsch).
 
 ## Für Frank zu tun
 
-1. `git push origin main-custom` (Commits liegen nur lokal).
-2. Auf Proxmox die LXC anlegen und Tandoor starten: [SETUP_LXC.md](SETUP_LXC.md). Dabei `docker compose config` ausführen (konnte ich nicht testen).
-3. NAS einbinden, `backup.conf` anlegen, Cron-Eintrag setzen und einmal den Restore-Test machen: [BACKUP.md](BACKUP.md).
+1. **Pushen:** `cd ~/Documents/rezept-app && git push origin main-custom` (GitHub Desktop geht auch).
+2. **Lokal anschauen (optional):** `source projekt/dev/env.sh && python manage.py runserver` → http://localhost:8000, Login `demo` / `demo1234`. Die Toolchain liegt in `.tools/` und `venv/` (komplett entfernbar, siehe DEV.md).
+3. **LXC aufsetzen:** [SETUP_LXC.md](SETUP_LXC.md) – Debian-LXC (unprivilegiert, nesting/keyctl, `/dev/net/tun`), Docker, Tailscale, Repo nach `/opt/rezept-app` klonen, `deploy/.env` aus `.env.example` füllen.
+4. **Image bauen und starten:** `deploy/build-image.sh`, Tag in `.env`, `docker compose config` (konnte ich nicht testen!), `docker compose up -d`, Admin-Konto anlegen. Danach: Haushalt einrichten, deine Frau einladen.
+5. **HTTPS aktivieren** (`tailscale serve --bg 80`, SETUP_LXC.md Abschnitt 6) – nötig, damit im Kochmodus der Bildschirm anbleibt und die App aufs Handy-Homescreen kann.
+6. **Backup einrichten:** NAS per Bind-Mount in die LXC, `deploy/backup.conf`, Cron-Eintrag, **einmal Restore-Test** ([BACKUP.md](BACKUP.md)). Erst echte Rezepte eintragen, wenn das läuft.
+7. **Entscheidungen durchsehen:** [ENTSCHEIDUNGEN.md](ENTSCHEIDUNGEN.md) E1–E8 – besonders E4 (Bewertungen = Tandoors CookLog + eigene Fotos), E5 (Datenmodell), E6/E8 (unsere Seiten ersetzen Tandoors Start- und Rezeptseite über den Routennamen), damit du weißt, was sich bei Upstream-Updates ändern könnte.
+8. **Mit deiner Frau am Handy testen** und Feedback sammeln – insbesondere: Ist „Anpassen" für „Unsere Version" verständlich? Passen Schriftgrößen im Kochmodus? Fehlt in der eigenen Einkaufsliste etwas gegenüber Tandoors?
