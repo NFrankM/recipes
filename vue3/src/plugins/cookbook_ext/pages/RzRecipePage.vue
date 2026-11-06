@@ -39,8 +39,15 @@
                     </a>
                 </div>
 
-                <div v-if="recipe.keywords?.length" class="rz-tags">
-                    <span v-for="k in recipe.keywords" :key="k.id" class="rz-tag">{{ k.label || k.name }}</span>
+                <!-- Kategorien (Schlagwörter unter „Kategorien“) und übrige Schlagwörter -->
+                <div v-if="recipeCategories.length || otherKeywords.length || canWrite" class="rz-tags">
+                    <router-link v-for="k in recipeCategories" :key="k.id" :to="{name: 'StartPage', query: {filter: `cat${k.id}`}}"
+                                 class="rz-tag rz-tag--cat">{{ k.label || k.name }}</router-link>
+                    <button v-if="canWrite" type="button" class="rz-tag rz-tag--edit" @click="openCategories()">
+                        <rz-icon :name="recipeCategories.length ? 'pencil' : 'plus'" :size="14"/>{{ recipeCategories.length ? '' : 'Kategorie' }}
+                        <span v-if="recipeCategories.length" class="sr-only">Kategorien ändern</span>
+                    </button>
+                    <span v-for="k in otherKeywords" :key="k.id" class="rz-tag">{{ k.label || k.name }}</span>
                 </div>
 
                 <p v-if="recipe.description" class="rz-desc">{{ recipe.description }}</p>
@@ -136,6 +143,14 @@
             </div>
         </main>
 
+        <v-bottom-sheet v-model="categorySheet" inset>
+            <v-card class="rz-cat-sheet">
+                <h2 class="rz-h2">Kategorien</h2>
+                <rz-category-picker v-model="categoryDraft" :disabled="savingCategories"/>
+                <v-btn color="primary" size="large" block class="mt-5" :loading="savingCategories" @click="saveCategories()">Fertig</v-btn>
+            </v-card>
+        </v-bottom-sheet>
+
         <rz-ingredient-sheet v-if="currentVariant && effective" v-model="ingredientSheet" :variant-id="currentVariant.id"
                              :ingredient="selectedIngredient" :steps="effective.steps" :default-step-id="selectedStepId"
                              :factor="effective.factor" :servings="effective.servings" @saved="afterEdit()"/>
@@ -172,7 +187,9 @@ import RzIngredientList from '../components/RzIngredientList.vue'
 import RzIngredientSheet from '../components/RzIngredientSheet.vue'
 import RzStepSheet from '../components/RzStepSheet.vue'
 import RzReviews from '../components/RzReviews.vue'
+import RzCategoryPicker from '../components/RzCategoryPicker.vue'
 import {rzApi} from '../services/api'
+import {useCategories} from '../services/categories'
 import {formatMinutes} from '../services/format'
 import type {EffectiveIngredient, EffectiveRecipe, EffectiveStep, RatingSummary, RecipeVariant} from '../services/types'
 
@@ -208,6 +225,34 @@ const modeOptions = computed(() => [
     {value: 'original', label: 'Original'},
     {value: 'ours', label: currentVariant.value?.name ?? 'Unsere Version'},
 ])
+const {ids: categoryIds, ensure: ensureCategories, reload: reloadCategories} = useCategories()
+ensureCategories().catch(() => undefined)
+const recipeCategories = computed(() => (recipe.value?.keywords ?? []).filter(k => categoryIds.value.has(k.id!)))
+const otherKeywords = computed(() => (recipe.value?.keywords ?? []).filter(k => !categoryIds.value.has(k.id!) && k.name !== 'Kategorien'))
+const categorySheet = ref(false)
+const categoryDraft = ref<number[]>([])
+const savingCategories = ref(false)
+
+function openCategories() {
+    categoryDraft.value = recipeCategories.value.map(k => k.id!)
+    categorySheet.value = true
+}
+
+async function saveCategories() {
+    if (!recipe.value) return
+    savingCategories.value = true
+    try {
+        await rzApi.setRecipeCategories(recipe.value.id!, categoryDraft.value)
+        recipe.value = await new ApiApi().apiRecipeRetrieve({id: recipe.value.id!})
+        reloadCategories().catch(() => undefined)
+        categorySheet.value = false
+    } catch (e: any) {
+        useMessageStore().addMessage(MessageType.ERROR, e?.message ?? 'Speichern fehlgeschlagen')
+    } finally {
+        savingCategories.value = false
+    }
+}
+
 const totalTime = computed(() => (recipe.value?.workingTime ?? 0) + (recipe.value?.waitingTime ?? 0))
 const orphanCount = computed(() => (effective.value?.orphaned_changes.length ?? 0) + (effective.value?.orphaned_notes.length ?? 0))
 const canWrite = computed(() => {
@@ -421,6 +466,39 @@ function goBack() {
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 14px;
+}
+
+.rz-tag.rz-tag--cat {
+    background: var(--rz-accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.rz-tag.rz-tag--edit {
+    gap: 4px;
+    border: 1px dashed var(--rz-border-strong);
+    background: var(--rz-bg);
+    color: var(--rz-accent);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 44px;
+    justify-content: center;
+}
+
+.rz-cat-sheet {
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    border-radius: var(--rz-radius-sheet) var(--rz-radius-sheet) 0 0 !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
 }
 
 .rz-tag {

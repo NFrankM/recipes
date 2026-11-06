@@ -1,6 +1,6 @@
 import {getCookie} from '@/utils/cookie'
 import {useDjangoUrls} from '@/composables/useDjangoUrls'
-import type {CookLogPhoto, EffectiveRecipe, IngredientChange, RatingSummary, RecipeVariant, VariantStepNote} from './types'
+import type {Category, CookLogPhoto, EffectiveRecipe, IngredientChange, RatingSummary, RecipeVariant, VariantStepNote} from './types'
 
 /**
  * Kleiner Client für die Endpunkte von cookbook_ext.
@@ -107,5 +107,21 @@ export const rzApi = {
     },
     deletePhoto(id: number) {
         return request<void>('DELETE', `api/cook-log-photo/${id}`)
+    },
+
+    categories() {
+        return request<Category[]>('GET', 'api/recipe-category')
+    },
+    createCategory(name: string) {
+        return request<Category>('POST', 'api/recipe-category', {name})
+    },
+    renameCategory(id: number, name: string) {
+        return request<Category>('PATCH', `api/recipe-category/${id}`, {name})
+    },
+    deleteCategory(id: number) {
+        return request<void>('DELETE', `api/recipe-category/${id}`)
+    },
+    setRecipeCategories(recipeId: number, categoryIds: number[]) {
+        return request<{ recipe: number, categories: { id: number, name: string }[] }>('POST', 'api/recipe-category/set', {recipe: recipeId, categories: categoryIds})
     },
 }

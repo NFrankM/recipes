@@ -89,3 +89,6 @@ export type RecipeVariant = {
 export type RatingSummary = { recipe: number, average: number | null, count: number, cooked: number }
 
 export type CookLogPhoto = { id: number, cook_log: number, recipe: number, image: string, created_at: string }
+
+/** Kategorie = Schlagwort unter „Kategorien“ (services/categories.py) */
+export type Category = { id: number, name: string, recipe_count: number, image: string | null }

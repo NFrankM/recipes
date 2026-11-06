@@ -50,6 +50,9 @@
                         @click="k.importKeyword = !k.importKeyword">{{ k.label || k.name }}</button>
             </div>
 
+            <h2 class="rz-h2">Kategorie</h2>
+            <rz-category-picker v-model="categoryIds" :disabled="saving"/>
+
             <h2 class="rz-h2">Zutaten</h2>
             <ul class="rz-preview__ings">
                 <li v-for="(i, n) in ingredients" :key="n">{{ i.originalText || [i.amount || '', i.unit?.name, i.food?.name].filter(Boolean).join(' ') }}</li>
@@ -80,6 +83,8 @@ import {useRoute, useRouter} from 'vue-router'
 import {ApiApi, Recipe, RecipeFromSourceResponse} from '@/openapi'
 import {useFileApi} from '@/composables/useFileApi'
 import RzIcon from '../components/RzIcon.vue'
+import RzCategoryPicker from '../components/RzCategoryPicker.vue'
+import {rzApi} from '../services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -91,6 +96,7 @@ const image = ref<string | undefined>()
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
+const categoryIds = ref<number[]>([])
 const canPaste = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText
 
 const validUrl = computed(() => /^https?:\/\/\S+\.\S+/.test(url.value.trim()))
@@ -163,6 +169,7 @@ async function save() {
         const data = {...recipe.value, keywords: (recipe.value.keywords ?? []).filter(k => k.importKeyword)}
         const created = await new ApiApi().apiRecipeCreate({recipe: data as unknown as Recipe})
         if (image.value) await updateRecipeImage(created.id!, null, image.value).catch(() => undefined)
+        if (categoryIds.value.length) await rzApi.setRecipeCategories(created.id!, categoryIds.value).catch(() => undefined)
         router.push({name: 'RecipeViewPage', params: {id: created.id!}})
     } catch {
         error.value = 'Speichern fehlgeschlagen.'

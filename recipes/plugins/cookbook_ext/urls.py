@@ -11,6 +11,7 @@ api_router.register(r'variant-step-note', views.VariantStepNoteViewSet, basename
 api_router.register(r'effective-recipe', views.EffectiveRecipeViewSet, basename='effective-recipe')
 api_router.register(r'cook-log-photo', views.CookLogPhotoViewSet, basename='cook-log-photo')
 api_router.register(r'recipe-rating', views.RecipeRatingViewSet, basename='recipe-rating')
+api_router.register(r'recipe-category', views.CategoryViewSet, basename='recipe-category')
 
 # Eigene Nicht-API-Seiten (unter /ext/), aktuell keine
 urlpatterns = []

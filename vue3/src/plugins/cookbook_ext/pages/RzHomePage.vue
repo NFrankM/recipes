@@ -36,6 +36,15 @@
             <button v-if="query" type="button" class="rz-search__clear" aria-label="Suche leeren" @click="query = ''"><rz-icon name="x" :size="18"/></button>
         </label>
 
+        <section v-if="!query && (categories.length || canWrite)" class="rz-home__cats" aria-label="Kategorien">
+            <div class="rz-home__cats-head">
+                <h2 class="rz-h2">Kategorien</h2>
+                <router-link :to="{name: 'RzCategoriesPage'}" class="rz-home__all">Alle</router-link>
+            </div>
+            <rz-category-tiles :active-id="activeCategory" :can-write="canWrite" @select="c => filter = filter === `cat${c.id}` ? 'all' : `cat${c.id}`"
+                               @created="c => filter = `cat${c.id}`"/>
+        </section>
+
         <div class="rz-chips" role="tablist">
             <button v-for="c in chips" :key="c.key" type="button" class="rz-chip" :class="{'rz-chip--active': filter === c.key}"
                     role="tab" :aria-selected="filter === c.key" @click="filter = c.key">{{ c.label }}</button>
@@ -70,11 +79,14 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {ApiApi, ApiRecipeListRequest, Keyword} from '@/openapi'
+import {ApiApi, ApiRecipeListRequest} from '@/openapi'
 import {useDjangoUrls} from '@/composables/useDjangoUrls'
 import RzIcon from '../components/RzIcon.vue'
 import RzStars from '../components/RzStars.vue'
 import {rzApi} from '../services/api'
+import RzCategoryTiles from '../components/RzCategoryTiles.vue'
+import {useCategories} from '../services/categories'
+import {useCanWrite} from '../services/permissions'
 import type {RatingSummary} from '../services/types'
 
 type Card = { id: number, name: string, image: string | null, time: number }
@@ -85,7 +97,8 @@ const logoutUrl = useDjangoUrls().getDjangoUrl('accounts/logout')
 
 const query = ref(String(route.query.q ?? ''))
 const filter = ref(String(route.query.filter ?? 'all'))
-const keywords = ref<Keyword[]>([])
+const {categories, reload: reloadCategories} = useCategories()
+const canWrite = useCanWrite()
 const recipes = ref<Card[]>([])
 const ratings = ref<Record<number, RatingSummary>>({})
 const variantIds = ref(new Set<number>())
@@ -101,12 +114,13 @@ const chips = computed(() => [
     {key: 'ours', label: 'Unsere Versionen'},
     {key: 'top', label: 'Gut bewertet'},
     {key: 'new', label: 'Neu'},
-    ...keywords.value.map(k => ({key: `kw${k.id}`, label: k.label || k.name})),
+    ...categories.value.map(c => ({key: `cat${c.id}`, label: c.name})),
 ])
+const activeCategory = computed(() => filter.value.startsWith('cat') ? Number(filter.value.slice(3)) : null)
 
 onMounted(() => {
     document.documentElement.classList.add('rz-immersive')
-    new ApiApi().apiKeywordList({pageSize: 12}).then(r => keywords.value = r.results ?? []).catch(() => undefined)
+    reloadCategories().catch(() => undefined)
     rzApi.allVariants().then(v => variantIds.value = new Set(v.map(x => x.recipe))).catch(() => undefined)
     observer = new IntersectionObserver(entries => {
         if (entries.some(e => e.isIntersecting) && hasMore.value && !loading.value) loadPage()
@@ -155,6 +169,7 @@ async function loadPage() {
             if (filter.value === 'top') params.ratingGte = 4
             if (filter.value === 'new') params.sortOrder = '-created_at'
             if (filter.value.startsWith('kw')) params.keywords = [Number(filter.value.slice(2))]
+            if (filter.value.startsWith('cat')) params.keywords = [Number(filter.value.slice(3))]
             const r = await new ApiApi().apiRecipeList(params)
             cards = (r.results ?? []).map(x => ({id: x.id!, name: x.name, image: x.image, time: (x.workingTime ?? 0) + (x.waitingTime ?? 0)}))
             hasMore.value = !!r.next
@@ -247,6 +262,31 @@ async function loadPage() {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.rz-home__cats {
+    margin-top: 20px;
+}
+
+.rz-home__cats-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.rz-home__cats-head .rz-h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--rz-ink);
+}
+
+.rz-home__all {
+    color: var(--rz-accent);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px 0 10px 12px;
 }
 
 .rz-chips {

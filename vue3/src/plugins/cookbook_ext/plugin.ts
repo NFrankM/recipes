@@ -35,6 +35,10 @@ export const plugin: TandoorPlugin = {
             component: () => import('@/plugins/cookbook_ext/pages/RzShoppingPage.vue'),
         },
         {
+            path: '/kategorien', name: 'RzCategoriesPage', meta: {title: 'Kategorien'},
+            component: () => import('@/plugins/cookbook_ext/pages/RzCategoriesPage.vue'),
+        },
+        {
             path: '/import', name: 'RzImportPage', meta: {title: 'Import'},
             component: () => import('@/plugins/cookbook_ext/pages/RzImportPage.vue'),
         },

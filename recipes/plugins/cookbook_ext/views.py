@@ -1,6 +1,7 @@
 import uuid
 
 from django.db.models import Avg, Count, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -11,12 +12,13 @@ from rest_framework.response import Response
 
 from cookbook.helper.image_processing import get_filetype, handle_image, is_file_type_allowed
 from cookbook.helper.permission_helper import CustomTokenHasReadWriteScope
-from cookbook.models import CookLog, MealPlan
+from cookbook.models import CookLog, Keyword, MealPlan
 
 from .models import CookLogPhoto, RecipeVariant, VariantIngredientChange, VariantStepNote
 from .permissions import CookLogPhotoPermission, RecipeChildPermission, visible_recipes
 from .serializers import (CookLogPhotoSerializer, RecipeVariantSerializer, VariantIngredientChangeSerializer,
                           VariantStepNoteSerializer, serialize_effective)
+from .services import categories as category_service
 from .services.effective import effective_recipe
 from .services.shopping import add_to_shopping_list
 
@@ -189,3 +191,88 @@ class RecipeRatingViewSet(viewsets.GenericViewSet):
             'count': found[rid]['count'] if rid in found else 0,
             'cooked': found[rid]['cooked'] if rid in found else 0,
         } for rid in ids])
+
+
+class CategoryPermission(RecipeChildPermission):
+    message = 'Keine Berechtigung für Kategorien.'
+
+
+class CategoryViewSet(viewsets.GenericViewSet):
+    """
+    Kategorien = Keywords unter „Kategorien“ (services/categories.py).
+    GET    /api/recipe-category/              Liste mit Anzahl und Titelbild (legt beim ersten Aufruf die Startkategorien an)
+    POST   /api/recipe-category/  {name}      neue Kategorie
+    PATCH  /api/recipe-category/<id>/ {name}  umbenennen
+    DELETE /api/recipe-category/<id>/         löschen (Rezepte bleiben, nur die Zuordnung entfällt)
+    POST   /api/recipe-category/set/ {recipe, categories: [ids]}  Kategorien eines Rezepts setzen
+    Lesen: Gäste und höher, Schreiben: Gruppe user und höher – immer nur im aktiven Space.
+    """
+    permission_classes = [CategoryPermission & CustomTokenHasReadWriteScope]
+    pagination_class = None
+    pagination_disabled = True  # wenige Einträge je Haushalt
+
+    def _get(self, pk):
+        try:
+            return category_service.categories(self.request.space).get(pk=int(pk))
+        except (ValueError, TypeError, Keyword.DoesNotExist):
+            raise Http404
+
+    @staticmethod
+    def _name(request):
+        name = str(request.data.get('name') or '').strip()
+        if not name:
+            raise ValidationError({'name': 'Bitte einen Namen eingeben.'})
+        if len(name) > 64:
+            raise ValidationError({'name': 'Höchstens 64 Zeichen.'})
+        return name
+
+    @extend_schema(responses=OpenApiTypes.OBJECT)
+    def list(self, request):
+        return Response(category_service.category_list(request, visible_recipes(request)))
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    def create(self, request):
+        try:
+            kw, created = category_service.add_category(request.space, self._name(request))
+        except ValueError as e:
+            raise ValidationError({'name': str(e)})
+        return Response({'id': kw.pk, 'name': kw.name, 'recipe_count': 0, 'image': None},
+                        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    def partial_update(self, request, pk=None):
+        kw = self._get(pk)
+        name = self._name(request)
+        if Keyword.objects.filter(space=request.space, name__iexact=name).exclude(pk=kw.pk).exists():
+            raise ValidationError({'name': 'Es gibt schon ein Schlagwort mit diesem Namen.'})
+        kw.name = name
+        kw.save()
+        return Response({'id': kw.pk, 'name': kw.name})
+
+    def destroy(self, request, pk=None):
+        kw = self._get(pk)
+        if kw.get_children_count():
+            raise ValidationError({'detail': 'Die Kategorie hat Unterkategorien – bitte in den Schlagwörtern bearbeiten.'})
+        kw.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    @decorators.action(detail=False, methods=['post'], url_path='set')
+    def set_for_recipe(self, request):
+        recipe = get_object_or_404(visible_recipes(request), pk=_int_value(request.data.get('recipe'), 'recipe'))
+        self.check_object_permissions(request, recipe)
+        ids = request.data.get('categories') or []
+        if not isinstance(ids, list):
+            raise ValidationError({'categories': 'Muss eine Liste sein.'})
+        try:
+            cats = category_service.set_recipe_categories(recipe, [_int_value(i, 'categories') for i in ids])
+        except ValueError as e:
+            raise ValidationError({'categories': str(e)})
+        return Response({'recipe': recipe.pk, 'categories': [{'id': c.pk, 'name': c.name} for c in cats]})
+
+
+def _int_value(value, name):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise ValidationError({name: 'Muss eine Zahl sein.'})

@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 /**
- * Eigene untere Navigation (Rezepte, Suche, Einkauf, Import) – ersetzt auf dem Handy Tandoors Leiste.
+ * Eigene untere Navigation (Rezepte, Kategorien, Suche, Einkauf, Import) – ersetzt auf dem Handy Tandoors Leiste.
  * Wird über den Layout-Hook in Tandoor.vue gerendert (projekt/CORE_CHANGES.md).
  */
 import {computed, watchEffect} from 'vue'
@@ -33,6 +33,7 @@ const is = (...names: string[]) => () => names.includes(String(route.name))
 
 const items = [
     {label: 'Rezepte', icon: 'book', to: {name: 'StartPage'}, active: is('StartPage', 'RecipeViewPage', 'RecipeViewPageTandoor')},
+    {label: 'Kategorien', icon: 'grid', to: {name: 'RzCategoriesPage'}, active: is('RzCategoriesPage')},
     {label: 'Suche', icon: 'search', to: {name: 'SearchPage'}, active: is('SearchPage')},
     {label: 'Einkauf', icon: 'cart', to: {name: 'RzShoppingPage'}, active: is('RzShoppingPage', 'ShoppingListPage')},
     {label: 'Import', icon: 'import', to: {name: 'RzImportPage'}, active: is('RzImportPage', 'RecipeImportPage')},
