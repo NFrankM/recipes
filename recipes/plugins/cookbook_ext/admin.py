@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CookLogPhoto, RecipeVariant, VariantIngredientChange, VariantStepNote
+from .models import CookLogPhoto, RecipeVariant, VariantIngredientChange, VariantStepNote, StepTiming
 
 
 class VariantIngredientChangeInline(admin.TabularInline):
@@ -47,3 +47,9 @@ class CookLogPhotoAdmin(admin.ModelAdmin):
     list_display = ('cook_log', 'created_by', 'created_at', 'space')
     raw_id_fields = ('cook_log', 'created_by')
     exclude = ('space',)
+
+
+@admin.register(StepTiming)
+class StepTimingAdmin(admin.ModelAdmin):
+    list_display = ('step', 'wait_time', 'parallel', 'space')
+    raw_id_fields = ('step',)

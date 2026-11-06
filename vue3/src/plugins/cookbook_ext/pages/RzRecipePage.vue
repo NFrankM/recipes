@@ -14,6 +14,7 @@
                     </template>
                     <v-list density="comfortable" min-width="240">
                         <v-list-item v-if="canWrite" :to="{name: 'ModelEditPage', params: {model: 'recipe', id: id}}" title="Original bearbeiten"/>
+                        <v-list-item v-if="canWrite" :title="timesEditing ? 'Zeiten bearbeiten beenden' : 'Zeiten bearbeiten'" @click="timesEditing = !timesEditing"/>
                         <v-list-item :to="{name: 'RecipeViewPageTandoor', params: {id: id}}" title="Klassische Ansicht"/>
                         <v-list-item v-if="canWrite && currentVariant" title="„Unsere Version“ löschen" @click="confirmDelete = true"/>
                     </v-list>
@@ -111,10 +112,9 @@
                                        @click="editing && openStep(s, idx)">
                                 <span class="rz-step__num" :class="{'rz-step__num--added': s.is_added}">{{ idx + 1 }}</span>
                                 <div class="rz-step__body">
-                                    <div class="rz-step__top">
+                                    <div v-if="s.name || s.is_added" class="rz-step__top">
                                         <strong v-if="s.name" class="rz-step__name">{{ s.name }}</strong>
                                         <span v-if="s.is_added" class="rz-badge rz-badge--outline">ergänzt</span>
-                                        <span v-if="s.time" class="rz-step__time"><rz-icon name="timer" :size="16"/>{{ formatMinutes(s.time) }}</span>
                                     </div>
                                     <instructions v-if="s.instructions_markdown" class="rz-step__text" :instructions_html="s.instructions_markdown"
                                                   :ingredient_factor="effective?.factor ?? 1"/>
@@ -124,6 +124,16 @@
                                         <p>{{ n.text }}</p>
                                     </div>
                                 </div>
+                                <!-- Zeit: eigene Spalte rechts (breit) bzw. kompaktes Badge über dem Schritt (Handy) -->
+                                <component :is="canEditTime(s) ? 'button' : 'div'" v-if="s.time || (timesEditing && canEditTime(s))"
+                                           class="rz-step__timecol" :class="{'rz-step__timecol--edit': canEditTime(s), 'rz-step__timecol--empty': !s.time}"
+                                           :type="canEditTime(s) ? 'button' : undefined" :aria-label="canEditTime(s) ? `Zeit für Schritt ${idx + 1} bearbeiten` : undefined"
+                                           @click.stop="canEditTime(s) && openTime(s, idx)">
+                                    <span class="rz-step__time"><rz-icon name="timer" :size="16"/>{{ s.time ? formatMinutes(s.time) : 'Zeit' }}</span>
+                                    <span v-if="s.wait_time && s.wait_time < s.time" class="rz-step__time-sub">davon {{ formatMinutes(s.wait_time) }} Warten</span>
+                                    <span v-else-if="s.wait_time" class="rz-step__time-sub">Wartezeit</span>
+                                    <span v-if="s.parallel" class="rz-step__time-sub">parallel</span>
+                                </component>
                             </component>
                         </li>
                     </ol>
@@ -142,6 +152,8 @@
                 <v-skeleton-loader type="heading, paragraph, list-item-two-line@4"/>
             </div>
         </main>
+
+        <rz-step-time-sheet v-model="timeSheet" :step="timeStep" :step-number="timeStepNumber" @saved="loadEffective()"/>
 
         <v-bottom-sheet v-model="categorySheet" inset>
             <v-card class="rz-cat-sheet">
@@ -188,6 +200,7 @@ import RzIngredientSheet from '../components/RzIngredientSheet.vue'
 import RzStepSheet from '../components/RzStepSheet.vue'
 import RzReviews from '../components/RzReviews.vue'
 import RzCategoryPicker from '../components/RzCategoryPicker.vue'
+import RzStepTimeSheet from '../components/RzStepTimeSheet.vue'
 import {rzApi} from '../services/api'
 import {useCategories} from '../services/categories'
 import {formatMinutes} from '../services/format'
@@ -229,6 +242,19 @@ const {ids: categoryIds, ensure: ensureCategories, reload: reloadCategories} = u
 ensureCategories().catch(() => undefined)
 const recipeCategories = computed(() => (recipe.value?.keywords ?? []).filter(k => categoryIds.value.has(k.id!)))
 const otherKeywords = computed(() => (recipe.value?.keywords ?? []).filter(k => !categoryIds.value.has(k.id!) && k.name !== 'Kategorien'))
+const timesEditing = ref(false)
+const timeSheet = ref(false)
+const timeStep = ref<EffectiveStep | null>(null)
+const timeStepNumber = ref(1)
+// Zeiten gehören zum Original-Schritt (Zusatzschritte der Variante haben ihre Zeit in der Notiz)
+const canEditTime = (s: EffectiveStep) => canWrite.value && !editing.value && !!s.id && !s.is_added
+
+function openTime(s: EffectiveStep, idx: number) {
+    timeStep.value = s
+    timeStepNumber.value = idx + 1
+    timeSheet.value = true
+}
+
 const categorySheet = ref(false)
 const categoryDraft = ref<number[]>([])
 const savingCategories = ref(false)
@@ -604,8 +630,11 @@ function goBack() {
 }
 
 .rz-step__inner {
-    display: flex;
-    gap: 14px;
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-areas: "num time" "num body";
+    column-gap: 14px;
+    align-items: start;
     width: 100%;
     padding: 14px 0;
     border: 0;
@@ -625,6 +654,7 @@ function goBack() {
 }
 
 .rz-step__num {
+    grid-area: num;
     flex: 0 0 32px;
     height: 32px;
     border-radius: 50%;
@@ -642,8 +672,80 @@ function goBack() {
 }
 
 .rz-step__body {
-    flex: 1;
+    grid-area: body;
     min-width: 0;
+}
+
+.rz-step__timecol {
+    grid-area: time;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    margin-bottom: 4px;
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--rz-surface);
+    font: inherit;
+    text-align: left;
+    color: var(--rz-ink-2);
+}
+
+.rz-step__timecol--edit {
+    cursor: pointer;
+    min-height: 32px;
+}
+
+.rz-step__timecol--empty {
+    background: var(--rz-bg);
+    border: 1px dashed var(--rz-border-strong);
+    color: var(--rz-accent);
+}
+
+.rz-step__timecol .rz-step__time {
+    color: inherit;
+    font-weight: 600;
+}
+
+.rz-step__time-sub {
+    font-size: 0.75rem;
+    color: var(--rz-muted);
+}
+
+/* breit: Zeit als eigene Spalte rechts neben dem Schritt */
+@media (min-width: 600px) {
+    .rz-step__inner {
+        grid-template-columns: 32px minmax(0, 1fr) 132px;
+        grid-template-areas: "num body time";
+    }
+
+    .rz-step__timecol {
+        justify-self: stretch;
+        flex-direction: column;
+        align-items: flex-end;
+        margin: 4px 0 0;
+        padding: 0;
+        background: none;
+        border-radius: 0;
+        text-align: right;
+    }
+
+    .rz-step__timecol--edit {
+        padding: 6px 8px;
+        border-radius: 12px;
+    }
+
+    .rz-step__timecol--edit:hover {
+        background: var(--rz-surface-soft);
+    }
+
+    .rz-step__timecol--empty {
+        border: 1px dashed var(--rz-border-strong);
+        border-radius: 12px;
+        align-items: center;
+    }
 }
 
 .rz-step__top {

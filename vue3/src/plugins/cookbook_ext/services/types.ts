@@ -27,6 +27,8 @@ export type EffectiveStep = {
     instruction: string
     instructions_markdown: string | null
     time: number
+    wait_time: number  // davon Wartezeit (Minuten)
+    parallel: boolean  // läuft neben dem nächsten Schritt her
     is_added: boolean
     added_note: StepNote | null
     notes: StepNote[]

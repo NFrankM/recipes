@@ -109,6 +109,9 @@ export const rzApi = {
         return request<void>('DELETE', `api/cook-log-photo/${id}`)
     },
 
+    setStepTiming(step: number, data: { time?: number, wait_time?: number, parallel?: boolean }) {
+        return request<{ step: number, time: number, wait_time: number, parallel: boolean }>('POST', 'api/step-timing', {step, ...data})
+    },
     categories() {
         return request<Category[]>('GET', 'api/recipe-category')
     },

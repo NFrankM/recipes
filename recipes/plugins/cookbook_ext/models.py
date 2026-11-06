@@ -152,3 +152,25 @@ class CookLogPhoto(models.Model, PermissionModelMixin):
     def save(self, *args, **kwargs):
         self.space_id = self.cook_log.space_id
         super().save(*args, **kwargs)
+
+
+class StepTiming(models.Model, PermissionModelMixin):
+    """
+    Zusatzangaben zur Zeit eines Original-Schritts (Tandoors Step.time = Gesamtdauer des Schritts in Minuten).
+    - wait_time: davon Wartezeit (Gare, Ruhen, Backen …); aktive Zeit = Step.time − wait_time
+    - parallel: läuft neben dem nächsten Schritt her und zählt nicht zur Gesamtdauer (Zeitplan)
+    Eigenes Model statt neuer Felder an Step, damit Tandoors Kern-Migrationen unberührt bleiben.
+    """
+    step = models.OneToOneField(Step, on_delete=models.CASCADE, related_name='rz_timing')
+    wait_time = models.PositiveIntegerField(default=0)
+    parallel = models.BooleanField(default=False)
+
+    space = models.ForeignKey(Space, on_delete=models.CASCADE)
+    objects = ScopedManager(space='space')
+
+    def __str__(self):
+        return f'{self.step_id}: {self.wait_time} min Warten{" (parallel)" if self.parallel else ""}'
+
+    def save(self, *args, **kwargs):
+        self.space_id = self.step.space_id
+        super().save(*args, **kwargs)

@@ -12,9 +12,9 @@ from rest_framework.response import Response
 
 from cookbook.helper.image_processing import get_filetype, handle_image, is_file_type_allowed
 from cookbook.helper.permission_helper import CustomTokenHasReadWriteScope
-from cookbook.models import CookLog, Keyword, MealPlan
+from cookbook.models import CookLog, Keyword, MealPlan, Step
 
-from .models import CookLogPhoto, RecipeVariant, VariantIngredientChange, VariantStepNote
+from .models import CookLogPhoto, RecipeVariant, StepTiming, VariantIngredientChange, VariantStepNote
 from .permissions import CookLogPhotoPermission, RecipeChildPermission, visible_recipes
 from .serializers import (CookLogPhotoSerializer, RecipeVariantSerializer, VariantIngredientChangeSerializer,
                           VariantStepNoteSerializer, serialize_effective)
@@ -276,3 +276,49 @@ def _int_value(value, name):
         return int(value)
     except (TypeError, ValueError):
         raise ValidationError({name: 'Muss eine Zahl sein.'})
+
+
+class StepTimingViewSet(viewsets.GenericViewSet):
+    """
+    POST /api/step-timing/ {step, time, wait_time, parallel}
+    Setzt die Zeit eines Original-Schritts: Step.time (Gesamtdauer, Tandoor-Feld) und unsere Zusatzangaben
+    (Wartezeit, „läuft parallel“). Gelesen werden die Werte über /api/effective-recipe/.
+    """
+    permission_classes = [RecipeChildPermission & CustomTokenHasReadWriteScope]
+    pagination_class = None
+    pagination_disabled = True
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    def create(self, request):
+        step_id = _int_value(request.data.get('step'), 'step')
+        recipe = visible_recipes(request).filter(steps__pk=step_id).first()
+        if recipe is None:
+            raise Http404
+        self.check_object_permissions(request, recipe)
+        step = Step.objects.get(pk=step_id, space=request.space)
+
+        def minutes(name, default):
+            value = request.data.get(name, default)
+            value = _int_value(value, name)
+            if value < 0 or value > 60 * 24 * 7:
+                raise ValidationError({name: 'Zwischen 0 und 10080 Minuten.'})
+            return value
+
+        time = minutes('time', step.time or 0)
+        timing = StepTiming.objects.filter(step=step).first()
+        wait = minutes('wait_time', timing.wait_time if timing else 0)
+        if wait > time:
+            raise ValidationError({'wait_time': 'Die Wartezeit kann nicht länger sein als die Gesamtzeit.'})
+        parallel = request.data.get('parallel', timing.parallel if timing else False)
+        if not isinstance(parallel, bool):
+            raise ValidationError({'parallel': 'Muss true oder false sein.'})
+
+        if step.time != time:
+            step.time = time
+            step.save(update_fields=['time'])
+        if wait or parallel or timing:
+            timing = timing or StepTiming(step=step)
+            timing.wait_time = wait
+            timing.parallel = parallel
+            timing.save()
+        return Response({'step': step.pk, 'time': step.time, 'wait_time': wait, 'parallel': parallel})

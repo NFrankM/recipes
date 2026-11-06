@@ -41,6 +41,12 @@ export interface SourceImportStep {
     instruction: string;
     /**
      * 
+     * @type {number}
+     * @memberof SourceImportStep
+     */
+    time?: number;
+    /**
+     * 
      * @type {Array<SourceImportIngredient>}
      * @memberof SourceImportStep
      */
@@ -74,6 +80,7 @@ export function SourceImportStepFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'name': json['name'] == null ? undefined : json['name'],
         'instruction': json['instruction'],
+        'time': json['time'] == null ? undefined : json['time'],
         'ingredients': ((json['ingredients'] as Array<any>).map(SourceImportIngredientFromJSON)),
         'showIngredientsTable': json['show_ingredients_table'] == null ? undefined : json['show_ingredients_table'],
     };
@@ -92,6 +99,7 @@ export function SourceImportStepToJSONTyped(value?: SourceImportStep | null, ign
         
         'name': value['name'],
         'instruction': value['instruction'],
+        'time': value['time'],
         'ingredients': ((value['ingredients'] as Array<any>).map(SourceImportIngredientToJSON)),
         'show_ingredients_table': value['showIngredientsTable'],
     };

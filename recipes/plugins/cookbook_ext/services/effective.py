@@ -46,6 +46,8 @@ class EffectiveStep:
     name: str
     instruction: str
     time: int
+    wait_time: int = 0  # davon Wartezeit (StepTiming)
+    parallel: bool = False  # läuft neben dem nächsten Schritt her (StepTiming)
     is_added: bool = False
     added_note: Optional[VariantStepNote] = None
     notes: list = field(default_factory=list)  # VariantStepNote
@@ -99,7 +101,7 @@ def effective_recipe(recipe: Recipe, variant: Optional[RecipeVariant] = None, se
     target, factor = scaling_factor(recipe, servings)
     result = EffectiveRecipe(recipe=recipe, variant=variant, base_servings=recipe.servings, servings=target, factor=factor)
 
-    steps = list(recipe.steps.all().order_by('order', 'pk').prefetch_related('ingredients__food', 'ingredients__unit'))
+    steps = list(recipe.steps.all().order_by('order', 'pk').prefetch_related('ingredients__food', 'ingredients__unit').select_related('rz_timing'))
     step_ids = {s.pk for s in steps}
 
     changes = list(variant.ingredient_changes.select_related('food', 'unit', 'ingredient', 'step').all()) if variant else []
@@ -131,7 +133,9 @@ def effective_recipe(recipe: Recipe, variant: Optional[RecipeVariant] = None, se
     seen_ingredients = set()
     effective_steps = []
     for s in steps:
+        timing = getattr(s, 'rz_timing', None)
         es = EffectiveStep(step=s, name=s.name, instruction=s.instruction, time=s.time,
+                           wait_time=min(timing.wait_time, s.time or 0) if timing else 0, parallel=timing.parallel if timing else False,
                            notes=notes_by_step.get(s.pk, []))
         for ing in s.ingredients.all():
             seen_ingredients.add(ing.pk)

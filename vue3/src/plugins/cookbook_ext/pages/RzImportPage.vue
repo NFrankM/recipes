@@ -60,7 +60,14 @@
 
             <h2 class="rz-h2">Zubereitung</h2>
             <ol class="rz-preview__steps">
-                <li v-for="(s, n) in steps" :key="n"><strong v-if="s.name" class="rz-preview__stepname">{{ s.name }}</strong>{{ s.instruction }}</li>
+                <li v-for="(s, n) in steps" :key="n">
+                    <strong v-if="s.name" class="rz-preview__stepname">{{ s.name }}</strong>
+                    <label v-if="s.instruction" class="rz-preview__time" :class="{'rz-preview__time--set': s.time}">
+                        <rz-icon name="timer" :size="15"/>
+                        <input v-model.number="s.time" type="number" min="0" inputmode="numeric" placeholder="–" aria-label="Zeit in Minuten"/> Min.
+                    </label>
+                    {{ s.instruction }}
+                </li>
             </ol>
 
             <div class="rz-preview__actions">
@@ -180,6 +187,30 @@ async function save() {
 </script>
 
 <style scoped>
+.rz-preview__time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    float: right;
+    margin: 0 0 4px 8px;
+    color: var(--rz-muted);
+    font-size: 0.8125rem;
+}
+
+.rz-preview__time input {
+    width: 52px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--rz-border);
+    text-align: center;
+    font: inherit;
+    color: var(--rz-ink);
+}
+
+.rz-preview__time--set input {
+    border-color: var(--rz-accent);
+}
+
 .rz-preview__stepname {
     display: block;
     font-weight: 700;

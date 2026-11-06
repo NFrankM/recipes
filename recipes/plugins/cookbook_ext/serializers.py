@@ -225,6 +225,8 @@ def serialize_effective(eff):
             'instruction': s.instruction,
             'instructions_markdown': s.step.get_instruction_render() if s.step else None,
             'time': s.time,
+            'wait_time': s.wait_time,
+            'parallel': s.parallel,
             'is_added': s.is_added,
             'added_note': note(s.added_note) if s.added_note else None,
             'notes': [note(n) for n in s.notes],
