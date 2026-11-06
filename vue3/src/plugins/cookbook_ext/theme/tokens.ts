@@ -1,5 +1,5 @@
 /**
- * Design-Tokens der Rezept-App (Quelle: CLAUDE.md, Abschnitt „Design").
+ * Design-Tokens der Rezept-App (Quelle: CLAUDE.md, Abschnitt „Design"; Blaugrau/Schrift seit 2026-11 passend zum Logo).
  * Werden als Vuetify-Theme-Farben (rz-*) und als CSS-Variablen (--rz-*) bereitgestellt.
  */
 export const RZ_COLORS = {
@@ -8,11 +8,11 @@ export const RZ_COLORS = {
     'rz-surface-soft': '#F2F5F8',
     'rz-border': '#E3E9EE',
     'rz-border-strong': '#C9D4DD',
-    'rz-ink': '#1E2A35',
-    'rz-ink-2': '#2E3E4C',
-    'rz-muted': '#52687A',
-    'rz-accent': '#3E5A70',
-    'rz-accent-dark': '#2F4A5E',
+    'rz-ink': '#2E3A46',
+    'rz-ink-2': '#3B4A58',
+    'rz-muted': '#5E6F80',
+    'rz-accent': '#5D7488',
+    'rz-accent-dark': '#485D71',
 } as const
 
 export const RZ_RADIUS = {

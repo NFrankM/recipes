@@ -561,7 +561,7 @@ msgstr "Du wurdest eingeladen von "
 
 #: .\cookbook\serializer.py:1840
 msgid " to join their Tandoor Recipes space "
-msgstr " um deren Tandoor Recipes Instanz beizutreten "
+msgstr " um der Rezepteapp beizutreten "
 
 #: .\cookbook\serializer.py:1842
 msgid "Click the following link to activate your account: "
@@ -582,12 +582,12 @@ msgstr "Die Einladung ist gültig bis "
 msgid ""
 "Tandoor Recipes is an Open Source recipe manager. Check it out on GitHub "
 msgstr ""
-"Tandoor Recipes ist ein Open-Source Rezept-Manager. Mehr Informationen sind "
-"auf GitHub zu finden "
+"Die Rezepteapp basiert auf Tandoor Recipes, einem Open-Source-Rezept-Manager. "
+"Mehr dazu auf GitHub "
 
 #: .\cookbook\serializer.py:1851
 msgid "Tandoor Recipes Invite"
-msgstr "Tandoor Recipes Einladung"
+msgstr "Einladung zur Rezepteapp"
 
 #: .\cookbook\serializer.py:2057
 msgid "Existing shopping list to update"
@@ -897,7 +897,7 @@ msgstr "Es tut uns Leid, aber die Registrierung ist derzeit geschlossen."
 
 #: .\cookbook\templates\frontend\tandoor.html:15
 msgid "Tandoor Recipe Manager"
-msgstr "Tandoor Rezept Manager"
+msgstr "Rezepteapp"
 
 #: .\cookbook\templates\index.html:28
 msgid "Search recipe ..."
@@ -2287,7 +2287,7 @@ msgstr ""
 
 #: .\cookbook\views\api.py:3365
 msgid "This feature is not yet available in the hosted version of tandoor!"
-msgstr "Diese Funktion ist in dieser Version von Tandoor noch nicht verfügbar!"
+msgstr "Diese Funktion ist in dieser Version der Rezepteapp noch nicht verfügbar!"
 
 #: .\cookbook\views\api.py:3386
 msgid "Sync successful!"

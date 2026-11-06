@@ -41,11 +41,11 @@ def get_theming_values(request):
         'logo_color_svg': static('assets/logo_color_svg.svg'),
         'custom_theme': None,
         'theme': static(themes[UserPreference.TANDOOR]),
-        'nav_logo': static('assets/brand_logo.png'),
-        'nav_bg_color': '#ddbf86',
+        'nav_logo': static('assets/brand_logo.svg'),  # Rezept-App: neues Logo (SVG)
+        'nav_bg_color': '#FFFFFF',  # Rezept-App: weiß statt Tandoor-Gold
         'nav_text_class': 'navbar-light',
         'sticky_nav': 'position: sticky; top: 0; left: 0; z-index: 1000;',
-        'app_name': 'Tandoor Recipes',
+        'app_name': 'Rezepteapp',
     }
 
     if request.user.is_authenticated:
@@ -75,4 +75,8 @@ def get_theming_values(request):
             tv['nav_text_class'] = nav_text_type_mapping[space.nav_text_color]
         if space.app_name:
             tv['app_name'] = space.app_name
+
+    # Rezept-App: auf dunkler Leiste das weiße Logo
+    if tv['nav_text_class'] == 'navbar-dark' and tv['nav_logo'] == static('assets/brand_logo.svg'):
+        tv['nav_logo'] = static('assets/brand_logo_white.svg')
     return tv

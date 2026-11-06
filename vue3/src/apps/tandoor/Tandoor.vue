@@ -1,7 +1,7 @@
 <template>
     <v-app>
         <v-app-bar color="tandoor" flat density="comfortable" v-if="!useUserPreferenceStore().isAuthenticated && !useUserPreferenceStore().isPrintMode">
-            <a href="https://tandoor.dev">
+            <a href="/">
                 <v-img src="../../assets/brand_logo.svg" width="140px" class="ms-2" ></v-img>
             </a>
         </v-app-bar>
@@ -184,7 +184,7 @@ router.afterEach((to, from) => {
         if (to.meta.title) {
             title.value = t(to.meta.title)
         } else {
-            title.value = 'Tandoor'
+            title.value = 'Rezepteapp'
         }
     })
 })

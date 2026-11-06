@@ -32,3 +32,10 @@ class CookbookExtConfig(AppConfig):
         recipe_import_postprocess.connect(on_recipe_import, dispatch_uid='cookbook_ext_html_fallback')
         # danach: Zeitangaben aus den (ggf. ergänzten) Schritten als Vorschlag für Step.time
         recipe_import_postprocess.connect(suggest_step_times, dispatch_uid='cookbook_ext_step_times')
+
+        # Branding: weiße Navigationsleiste statt Tandoor-Gold für neue Benutzer
+        from django.db.models.signals import post_migrate, pre_save
+        from cookbook.models import UserPreference
+        from recipes.plugins.cookbook_ext.services.branding import default_nav_color, site_name
+        pre_save.connect(default_nav_color, sender=UserPreference, dispatch_uid='cookbook_ext_nav_color')
+        post_migrate.connect(site_name, sender=self, dispatch_uid='cookbook_ext_site_name')

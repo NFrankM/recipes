@@ -1,1 +1,18 @@
-{}
+{
+    "AboutTandoor": "Die Rezepteapp basiert auf Tandoor, einer Open-Source-Plattform zur Verwaltung von Rezepten, Speiseplänen, Einkaufslisten und vielem mehr.",
+    "ConnectorConfigHelp": "Mit Konnektoren können Daten der Rezepteapp automatisch mit anderen Anwendungen synchronisiert werden. ",
+    "ConversionsHelp": "Mit Umrechnungen kann die Menge eines Lebensmittels in verschiedenen Einheiten ausgerechnet werden. Aktuell wird dies nur zur Berechnung von Eigenschaften verwendet, später sollen auch andere Funktionen der Rezepteapp davon profitieren. ",
+    "DatabaseHelp": "Die Rezepteapp verwendet verschiedene Objekte, um Rezepte, Einkaufslisten, Essenspläne und mehr zu erstellen. Hier können alle diese Objekte verwaltet werden.",
+    "DeviceSettingsHelp": "Damit die Rezepteapp überall optimal aussieht, werden diese Einstellungen nur auf diesem Gerät gespeichert.",
+    "FoodHelp": "Lebensmittel sind die wichtigste Grundlage für Rezepte in der Rezepteapp. Sie werden mit Einheiten und Mengen zu Zutaten in Rezepten zusammengesetzt. Außerdem können sie für Einkaufslisten, Eigenschaften und vieles mehr genutzt werden. ",
+    "HouseholdSetup1": "Haushalte gibt es seit Tandoor-Version 2.6.0 (30.03.2026), auf der die Rezepteapp basiert. Sie ersetzen das individuelle Teilen von Einkaufslisten und Speiseplänen aus früheren Versionen.",
+    "ImportIntoTandoor": "In die Rezepteapp importieren",
+    "ImportIntoTandoorHelp": "Um das Rezept in deine eigene Rezepteapp zu importieren, befolge die folgenden Schritte.",
+    "RecipeHelp": "Rezepte sind die Grundlage der Rezepteapp und bestehen aus allgemeinen Informationen und Schritten, die wiederum aus Zutaten, Texten und mehr bestehen. ",
+    "Show_Logo_Help": "Zeigt das Logo der Rezepteapp oder des Space in der Navigationsleiste an.",
+    "StorageHelp": "Externe Speicherorte, an denen Rezepte als Dateien (Foto/PDF) abgelegt und mit der Rezepteapp synchronisiert werden können.",
+    "UnitConversionHelp": "Individuelle Umwandlungen erlauben es individuelle Einheiten allgemein oder eines bestimmten Lebensmittels umzurechnen.  Beispielsweise kann man so 1 Tasse Mehl in 125g umrechnen. Die Rezepteapp kann automatisch innerhalb der Gewichts und innerhalb der Volumen Einheiten umrechnen, wenn die Einheiten die richtigen Basiseinheiten hinterlegt haben.  Umwandlungen werden für die Berechnung von Eigenschaften benötigt.",
+    "WelcometoTandoor": "Willkommen in der Rezepteapp",
+    "search_create_help_text": "Erstelle ein neues Rezept direkt in der Rezepteapp.",
+    "ThanksTextSelfhosted": "Für die Nutzung der Rezepteapp. Sie basiert auf dem Open-Source-Projekt Tandoor – dessen Entwicklung kannst du über GitHub Sponsors unterstützen."
+}

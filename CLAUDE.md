@@ -65,11 +65,11 @@ Stil angelehnt an die App Mela: klar, ruhig, hell. Weiß und Blaugrau, dunkle Sc
 | surface | `#EEF2F5` | Suchfeld, Chips, Segment-Control |
 | surface-soft | `#F2F5F8` | Notizen, hervorgehobene Zeilen |
 | border | `#E3E9EE` / `#C9D4DD` | Trennlinien / Outline-Buttons |
-| ink | `#1E2A35` | Überschriften, Text |
-| ink-2 | `#2E3E4C` | Fließtext |
-| muted | `#52687A` | Metadaten |
-| accent | `#3E5A70` | Primärbuttons, aktive Tabs, Badges |
-| accent-dark | `#2F4A5E` | Sterne, Hover |
+| ink | `#2E3A46` | Überschriften, Text |
+| ink-2 | `#3B4A58` | Fließtext |
+| muted | `#5E6F80` | Metadaten |
+| accent | `#5D7488` | Primärbuttons, aktive Tabs, Badges |
+| accent-dark | `#485D71` | Sterne, Hover |
 
 **Typografie:** Plus Jakarta Sans (400/500/600/700). Titel 28–32 px bold, H2 18–20 px bold, Text 15 px.
 **Formen:** Radius 14–16 px für Karten und Felder, 24 px für das Sheet über dem Foto, Chips als Pills. Touch-Targets mindestens 44 px.

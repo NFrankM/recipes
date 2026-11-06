@@ -81,3 +81,10 @@ Abweichungen vom Entwurf in CLAUDE.md und warum:
 - **Wahl:** Kategorie = Keyword direkt unter dem Wurzel-Keyword **„Kategorien“**. Kein neues Model, keine Migration. Der Endpunkt `/api/recipe-category/` legt beim ersten Aufruf je Space „Kategorien“ mit den Startkategorien an (Brot, Kuchen, Hauptgerichte, Beilagen, Aufstriche, Desserts) – danach nie wieder, damit gelöschte Startkategorien nicht zurückkommen. Gibt es ein Keyword mit dem Namen schon (z. B. „brot“ aus einem Import), wird es unter „Kategorien“ verschoben, die Zuordnungen bleiben.
 - **Oberfläche:** Kacheln auf der Startseite und eigene Seite „Kategorien“ (untere Leiste), Auswahl per Chips in unserer Rezeptansicht und in der Import-Vorschau. In Tandoors Rezept-Editor wählt man die Kategorie über das normale Schlagwort-Feld (dort als „Kategorien > Brot“) – den Editor bauen wir nicht um.
 - **Rechte:** Lesen ab Gast, Anlegen/Umbenennen/Löschen/Zuordnen ab Gruppe user, immer nur im aktiven Space.
+
+## E9 – Branding „Rezepteapp“ möglichst ohne Kernänderungen (2026-11-06)
+
+- **Vue-Texte:** nicht in `vue3/src/locales/de.json` (wird bei jedem Upstream-Update von Weblate geändert → Konflikte), sondern als Überschreibung in `vue3/src/plugins/cookbook_ext/locales/de.json`. Tandoor mischt Plugin-Übersetzungen nach den eigenen ein, gleiche Schlüssel gewinnen. Texte, die das Upstream-Projekt meinen (Open-Data-Projekt, gehostete Version), bleiben; Hinweise auf Tandoor als Grundlage bleiben als Quellenangabe erhalten („basiert auf Tandoor“).
+- **Unverändert:** Import-/Export-Format „Tandoor“, Paket- und interne Namen, Links zur Tandoor-Doku, Seite „System“ (verweist auf den Quellcode, wichtig für AGPL).
+- **Navigationsleiste:** Benutzer mit Tandoors Standardfarbe (#ddbf86) → Weiß (Plugin-Migration 0003, neue Benutzer per Signal). Die App-Leiste ist durch unser Theme ohnehin weiß. Seitenname für E-Mails (`django.contrib.sites`) wird per post_migrate von „example.com“ auf „Rezepteapp“ gesetzt.
+- **Farben:** Blaugrau/Schrift an das neue Logo angepasst (accent #5D7488, accent-dark #485D71, ink #2E3A46; ink-2/muted daraus abgeleitet, Kontrast ≥ 4,5 : 1 auf Weiß). CLAUDE.md-Tabelle aktualisiert.
