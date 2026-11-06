@@ -146,16 +146,24 @@ def get_from_scraper(scrape, request):
 
     ingredient_parser = IngredientParser(request, True)
 
-    # assign steps
+    # assign steps (structured schema data first, so HowToSection names are kept; scraper text as fallback)
+    steps = []
     try:
-        for i in parse_instructions(scrape.instructions_list()):
-            recipe_json['steps'].append({
-                'instruction': i,
-                'ingredients': [],
-                'show_ingredients_table': request.user.userpreference.show_step_ingredients,
-            })
+        steps = parse_instruction_steps(scrape.schema.data.get('recipeInstructions'))
     except Exception:
-        pass
+        steps = []
+    if not steps:
+        try:
+            steps = parse_instruction_steps(scrape.instructions_list())
+        except Exception:
+            steps = []
+    for s in steps:
+        recipe_json['steps'].append({
+            'name': s['name'],
+            'instruction': s['instruction'],
+            'ingredients': [],
+            'show_ingredients_table': request.user.userpreference.show_step_ingredients,
+        })
     if len(recipe_json['steps']) == 0:
         recipe_json['steps'].append({
             'instruction': '',
@@ -333,33 +341,81 @@ def clean_instruction_string(instruction):
     return normalized_string
 
 
+def _instruction_text(value):
+    """ text/description/name of a schema.org object can be a string, a list of strings or a nested object """
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return '\n'.join(t for t in (_instruction_text(v) for v in value) if t)
+    if isinstance(value, dict):
+        for key in ('text', 'description', 'name', '@value'):
+            if value.get(key):
+                return _instruction_text(value[key])
+    return ''
+
+
+def parse_instruction_steps(instructions, _section=None):
+    """
+    Convert arbitrary instructions object (schema.org recipeInstructions) into a flat list of steps.
+    HowToSection and HowToStep are handled recursively, the section heading becomes the name of the first step
+    of that section. Text fallback: text -> description -> name. @id, url and image are ignored and raw objects
+    are never turned into instruction text.
+    :param instructions: any instructions object from import
+    :return: list of dicts {'name': str, 'instruction': str}
+    """
+    steps = []
+    if not instructions:
+        return steps
+
+    if isinstance(instructions, str):
+        text = clean_instruction_string(instructions)
+        if text:
+            steps.append({'name': _section or '', 'instruction': text})
+        return steps
+
+    if isinstance(instructions, (list, tuple)):
+        for i in instructions:
+            sub = parse_instruction_steps(i, _section)
+            if sub:
+                _section = None  # section name only goes to the first step
+            steps += sub
+        return steps
+
+    if not isinstance(instructions, dict):
+        return steps  # unknown objects (e.g. from other scrapers) never end up as str(obj)
+
+    types = instructions.get('@type', '')
+    types = types if isinstance(types, list) else [types]
+    children = instructions.get('itemListElement') or instructions.get('steps')
+    if isinstance(children, dict):
+        children = [children]
+
+    if 'HowToSection' in types or ('ItemList' in types and children) or (children and not instructions.get('text')):
+        name = normalize_string(_instruction_text(instructions.get('name') or instructions.get('Name') or ''))
+        if _section and name:
+            name = f'{_section} – {name}'
+        return parse_instruction_steps(children, name or _section)
+
+    text = _instruction_text(instructions.get('text')) or _instruction_text(instructions.get('description'))
+    name = normalize_string(_instruction_text(instructions.get('name')))
+    if not text:
+        text, name = name, ''
+    text = clean_instruction_string(text)
+    if not text:
+        return steps
+    if name and text.startswith(name.rstrip('.').strip()):
+        name = ''  # many sites repeat the (truncated) text as name
+    steps.append({'name': (_section or name or '')[:128], 'instruction': text})
+    return steps
+
+
 def parse_instructions(instructions):
     """
     Convert arbitrary instructions object from website import and turn it into a flat list of strings
     :param instructions: any instructions object from import
     :return: list of strings (from one to many elements depending on website)
     """
-    instruction_list = []
-
-    if isinstance(instructions, list):
-        for i in instructions:
-            if isinstance(i, str):
-                instruction_list.append(clean_instruction_string(i))
-            else:
-                if 'text' in i:
-                    instruction_list.append(clean_instruction_string(i['text']))
-                elif 'itemListElement' in i:
-                    for ile in i['itemListElement']:
-                        if isinstance(ile, str):
-                            instruction_list.append(clean_instruction_string(ile))
-                        elif 'text' in ile:
-                            instruction_list.append(clean_instruction_string(ile['text']))
-                else:
-                    instruction_list.append(clean_instruction_string(str(i)))
-    else:
-        instruction_list.append(clean_instruction_string(instructions))
-
-    return instruction_list
+    return [s['instruction'] for s in parse_instruction_steps(instructions)]
 
 
 def parse_image(image):

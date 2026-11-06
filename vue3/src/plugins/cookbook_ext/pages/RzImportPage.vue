@@ -53,7 +53,7 @@
 
             <h2 class="rz-h2">Zubereitung</h2>
             <ol class="rz-preview__steps">
-                <li v-for="(s, n) in steps" :key="n">{{ s.instruction }}</li>
+                <li v-for="(s, n) in steps" :key="n"><strong v-if="s.name" class="rz-preview__stepname">{{ s.name }}</strong>{{ s.instruction }}</li>
             </ol>
 
             <div class="rz-preview__actions">
@@ -132,10 +132,18 @@ async function load() {
         preview.value = r
     } catch (e: any) {
         const body = await e?.response?.json?.().catch(() => null)
-        error.value = body?.msg || 'Die Seite konnte nicht geladen werden. Ist der Link richtig?'
+        error.value = importErrorText(body?.msg)
     } finally {
         loading.value = false
     }
+}
+
+/** Server-Meldungen in verständliche Hinweise übersetzen (z. B. Bot-Schutz der Webseite) */
+function importErrorText(msg?: string): string {
+    if (msg && /\b(401|403|429)\b/.test(msg)) {
+        return 'Die Webseite blockiert den automatischen Abruf. Öffne das Rezept im Browser, kopiere den Text und füge ihn unter „Weitere Import-Möglichkeiten → Text“ ein.'
+    }
+    return msg || 'Die Seite konnte nicht geladen werden. Ist der Link richtig?'
 }
 
 async function save() {
@@ -156,6 +164,11 @@ async function save() {
 </script>
 
 <style scoped>
+.rz-preview__stepname {
+    display: block;
+    font-weight: 700;
+}
+
 .rz-import {
     max-width: 720px;
     margin: 0 auto;

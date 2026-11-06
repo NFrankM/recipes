@@ -2113,6 +2113,7 @@ class SourceImportIngredientSerializer(serializers.Serializer):
 
 
 class SourceImportStepSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False, allow_blank=True, default='')
     instruction = serializers.CharField()
     ingredients = SourceImportIngredientSerializer(many=True)
     show_ingredients_table = serializers.BooleanField(default=True)

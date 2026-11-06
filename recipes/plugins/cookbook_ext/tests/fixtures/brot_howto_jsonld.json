@@ -1,0 +1,50 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "@id": "https://example.org/roggenbrot/#recipe",
+  "name": "Roggensauer-Dinkelbrot (nachgebaut)",
+  "recipeYield": "1 Laib",
+  "recipeIngredient": ["200 g Roggenmehl 960", "200 g Wasser", "20 g Anstellgut", "300 g Dinkel-Ruchmehl", "10 g Salz"],
+  "recipeInstructions": [
+    {
+      "@type": "HowToSection",
+      "name": "Roggensauer",
+      "itemListElement": [
+        {
+          "@type": "HowToStep",
+          "@id": "https://example.org/roggenbrot/#step-1",
+          "url": "https://example.org/roggenbrot/#step-1",
+          "image": "https://example.org/sauer.jpg",
+          "name": "Alle Zutaten für den Sauerteig gut vermischen und 16 Stunden bei Raumtemperatur reifen lassen."
+        }
+      ]
+    },
+    {
+      "@type": "HowToSection",
+      "name": "Hauptteig",
+      "itemListElement": [
+        {
+          "@type": "HowToStep",
+          "@id": "https://example.org/roggenbrot/#step-2",
+          "description": "Sauerteig mit den restlichen Zutaten 8 Minuten kneten."
+        },
+        {
+          "@type": "HowToStep",
+          "@id": "https://example.org/roggenbrot/#step-3",
+          "text": "Teig 1 Std. gehen lassen.",
+          "name": "Stockgare"
+        },
+        {
+          "@type": "HowToSection",
+          "name": "Backen",
+          "itemListElement": {
+            "@type": "HowToStep",
+            "@id": "https://example.org/roggenbrot/#step-4",
+            "text": "Bei 250 °C fallend auf 220 °C 50 Minuten backen."
+          }
+        }
+      ]
+    },
+    {"@type": "HowToStep", "@id": "https://example.org/roggenbrot/#leer", "url": "https://example.org/roggenbrot/"}
+  ]
+}
