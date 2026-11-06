@@ -1,24 +1,24 @@
 {
-  "name": "Tandoor Recipes",
-  "short_name": "Tandoor",
+  "name": "Rezepteapp",
+  "short_name": "Rezepteapp",
   "description": "Application to manage, tag and search recipes.",
   "icons": [
     {
-      "src": "/static/assets/logo_color144.png",
+      "src": "/static/assets/logo_color_144.png",
       "type": "image/png",
       "sizes": "144x144"
     },
     {
-      "src": "/static/assets/logo_color512.png",
+      "src": "/static/assets/logo_color_512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "./search",
-  "background_color": "#ffcb76",
+  "background_color": "#FFFFFF",
   "display": "standalone",
   "scope": ".",
-  "theme_color": "#ffcb76",
+  "theme_color": "#5D7488",
   "shortcuts": [
     {
       "name": "Plan",
