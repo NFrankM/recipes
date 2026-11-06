@@ -103,6 +103,11 @@
                         Kochmodus
                     </v-btn>
 
+                    <v-btn variant="outlined" size="large" block class="mt-3" :disabled="!effective?.steps.length" @click="scheduleSheet = true">
+                        <rz-icon name="calendar" class="me-2"/>
+                        Zeitplan
+                    </v-btn>
+
                     <!-- Schritte -->
                     <h2 class="rz-h2 rz-block">Zubereitung</h2>
                     <ol class="rz-steps">
@@ -153,6 +158,9 @@
             </div>
         </main>
 
+        <rz-schedule-sheet v-if="effective && recipe" v-model="scheduleSheet" :steps="effective.steps" :recipe-name="recipe.name"
+                           :recipe-id="Number(id)"/>
+
         <rz-step-time-sheet v-model="timeSheet" :step="timeStep" :step-number="timeStepNumber" @saved="loadEffective()"/>
 
         <v-bottom-sheet v-model="categorySheet" inset>
@@ -201,6 +209,7 @@ import RzStepSheet from '../components/RzStepSheet.vue'
 import RzReviews from '../components/RzReviews.vue'
 import RzCategoryPicker from '../components/RzCategoryPicker.vue'
 import RzStepTimeSheet from '../components/RzStepTimeSheet.vue'
+import RzScheduleSheet from '../components/RzScheduleSheet.vue'
 import {rzApi} from '../services/api'
 import {useCategories} from '../services/categories'
 import {formatMinutes} from '../services/format'
@@ -242,6 +251,7 @@ const {ids: categoryIds, ensure: ensureCategories, reload: reloadCategories} = u
 ensureCategories().catch(() => undefined)
 const recipeCategories = computed(() => (recipe.value?.keywords ?? []).filter(k => categoryIds.value.has(k.id!)))
 const otherKeywords = computed(() => (recipe.value?.keywords ?? []).filter(k => !categoryIds.value.has(k.id!) && k.name !== 'Kategorien'))
+const scheduleSheet = ref(false)
 const timesEditing = ref(false)
 const timeSheet = ref(false)
 const timeStep = ref<EffectiveStep | null>(null)
