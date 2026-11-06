@@ -433,7 +433,7 @@ SPECTACULAR_SETTINGS = {
         "x-logo": {
             "url": f"{STATIC_URL}assets/brand_logo.svg",
             "backgroundColor": "#FFFFFF",
-            "altText": "Tandoor logo",
+            "altText": "Rezepteapp Logo",
             'href': '/'
         }
     },
