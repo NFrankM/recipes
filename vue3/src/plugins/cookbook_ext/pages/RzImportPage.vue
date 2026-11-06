@@ -27,6 +27,10 @@
                 <router-link v-for="d in preview.duplicates" :key="d.id" :to="{name: 'RecipeViewPage', params: {id: d.id}}">{{ d.name }}</router-link>
             </div>
 
+            <div v-if="missingHints.length" class="rz-callout" role="status">
+                <span v-for="h in missingHints" :key="h">{{ h }}</span>
+            </div>
+
             <div class="rz-preview__img" :style="image ? {backgroundImage: `url(${image})`} : {}"></div>
             <div v-if="(preview.images?.length ?? 0) > 1" class="rz-preview__thumbs">
                 <button v-for="i in preview.images!.slice(0, 8)" :key="i" type="button" class="rz-preview__thumb"
@@ -94,6 +98,11 @@ const recipe = computed(() => preview.value?.recipe)
 const steps = computed(() => recipe.value?.steps ?? [])
 const ingredients = computed(() => steps.value.flatMap(s => s.ingredients ?? []))
 const keywordOptions = computed(() => recipe.value?.keywords ?? [])
+const hasInstructions = computed(() => steps.value.some(s => s.instruction?.trim()))
+const missingHints = computed(() => [
+    ...(ingredients.value.length ? [] : ['Keine Zutaten gefunden – bitte manuell ergänzen.']),
+    ...(hasInstructions.value ? [] : ['Keine Anleitung gefunden – bitte manuell ergänzen.']),
+])
 const time = computed(() => (recipe.value?.workingTime ?? 0) + (recipe.value?.waitingTime ?? 0))
 
 onMounted(() => {

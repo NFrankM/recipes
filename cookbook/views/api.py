@@ -48,6 +48,7 @@ from litellm import completion, BadRequestError
 from litellm.exceptions import Timeout as LitellmTimeout
 from oauth2_provider.models import AccessToken
 from recipe_scrapers import scrape_html
+from recipe_scrapers._factory import SchemaScraperFactory
 from recipe_scrapers._exceptions import NoSchemaFoundInWildMode
 from requests.exceptions import MissingSchema
 from rest_framework import decorators, status, viewsets
@@ -2671,7 +2672,7 @@ class RecipeUrlImportView(APIView):
                         html = resp.content
                         scrape = scrape_html(org_url=url, html=html, supported_only=False)
                     except NoSchemaFoundInWildMode:
-                        pass
+                        scrape = SchemaScraperFactory.generate(html=html, url=url)  # Rezept-App: leeres Schema, Plugins können per HTML-Fallback ergänzen
                     except requests.exceptions.ConnectionError:
                         response['error'] = True
                         response['msg'] = _('Connection Refused.')
@@ -2690,12 +2691,19 @@ class RecipeUrlImportView(APIView):
                     data = "<script type='application/ld+json'>" + json.dumps(data_json) + "</script>"
                 except JSONDecodeError:
                     pass
-                scrape = scrape_html(html=data, org_url='https://urlnotfound.none', supported_only=False)
-                if not url and (found_url := scrape.schema.data.get('url', 'https://urlnotfound.none')):
-                    scrape = scrape_html(html=data, org_url=found_url, supported_only=False)
+                try:
+                    scrape = scrape_html(html=data, org_url='https://urlnotfound.none', supported_only=False)
+                    if not url and (found_url := scrape.schema.data.get('url', 'https://urlnotfound.none')):
+                        scrape = scrape_html(html=data, org_url=found_url, supported_only=False)
+                except NoSchemaFoundInWildMode:
+                    scrape = SchemaScraperFactory.generate(html=data, url=url or 'https://urlnotfound.none')  # Rezept-App: s. o.
 
             if scrape:
                 response['recipe'] = helper.get_from_scraper(scrape, request)
+                if not scrape.schema.data and not any(st['instruction'].strip() or st['ingredients'] for st in response['recipe']['steps']):
+                    # Rezept-App: weder schema.org-Daten noch HTML-Fallback haben etwas gefunden
+                    response = {'error': True, 'msg': _('No usable data could be found.')}
+                    return Response(RecipeFromSourceResponseSerializer().to_representation(response), status=status.HTTP_400_BAD_REQUEST)
                 response['images'] = list(dict.fromkeys(get_images_from_soup(scrape.soup, url)))
                 if url and url.strip() != '':
                     response['duplicates'] = Recipe.objects.filter(space=request.space, source_url=url.strip()).values('id', 'name').all()

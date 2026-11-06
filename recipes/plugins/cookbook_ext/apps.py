@@ -23,3 +23,9 @@ class CookbookExtConfig(AppConfig):
     base_url = 'ext/'
     # Router in urls.py, dessen ViewSets Tandoor in /api/ übernimmt
     api_router_name = 'api_router'
+
+    def ready(self):
+        # HTML-Fallback für den URL-Import (Seiten ohne vollständige schema.org-Daten)
+        from cookbook.helper.recipe_url_import import recipe_import_postprocess
+        from recipes.plugins.cookbook_ext.services.html_fallback import on_recipe_import
+        recipe_import_postprocess.connect(on_recipe_import, dispatch_uid='cookbook_ext_html_fallback')

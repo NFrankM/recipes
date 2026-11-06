@@ -2,6 +2,7 @@ import re
 import traceback
 from html import unescape
 
+from django.dispatch import Signal
 from django.utils.dateparse import parse_duration
 from django.utils.translation import gettext as _
 from isodate import parse_duration as iso_parse_duration
@@ -12,6 +13,10 @@ from recipe_scrapers._utils import get_host_name, get_minutes
 from cookbook.helper.automation_helper import AutomationEngine
 from cookbook.helper.ingredient_parser import IngredientParser
 from cookbook.models import Automation, Keyword, PropertyType
+
+# Rezept-App: Plugins können das Import-Ergebnis nachbearbeiten (z. B. HTML-Fallback ohne schema.org-Daten).
+# Empfänger bekommen recipe_json, scrape, request und ingredient_parser und ändern recipe_json direkt.
+recipe_import_postprocess = Signal()
 
 
 def get_from_scraper(scrape, request):
@@ -213,6 +218,11 @@ def get_from_scraper(scrape, request):
     except Exception:
         traceback.print_exc()
         pass
+
+    for _receiver, result in recipe_import_postprocess.send_robust(sender=get_from_scraper, recipe_json=recipe_json, scrape=scrape, request=request,
+                                                                  ingredient_parser=ingredient_parser):
+        if isinstance(result, Exception):
+            traceback.print_exception(result)
 
     for s in recipe_json['steps']:
         s['instruction'] = automation_engine.apply_regex_replace_automation(s['instruction'], Automation.INSTRUCTION_REPLACE)
